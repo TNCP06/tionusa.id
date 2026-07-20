@@ -42,7 +42,7 @@ export default async function Home() {
     entries.flatMap((e) => (e.techStack ?? []).filter(Boolean) as string[]),
   ).size;
 
-  const galleryImages = entries.flatMap((e) =>
+  const dbGalleryImages = entries.flatMap((e) =>
     (e.gallery ?? []).map((g) => ({
       url: mediaUrl(g),
       alt: e.title,
@@ -51,6 +51,15 @@ export default async function Home() {
   ).filter(
     (g): g is { url: string; alt: string; caption: string } => g.url !== null,
   );
+
+  const galleryImages = [
+    {
+      url: "/editorial_web_mockup.jpg",
+      alt: "Test Mockup Image",
+      caption: "Test Mockup Project",
+    },
+    ...dbGalleryImages,
+  ];
 
   return (
     <>

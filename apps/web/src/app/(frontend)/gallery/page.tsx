@@ -22,7 +22,7 @@ export default async function GalleryPage() {
     getProfile(),
   ]);
 
-  const images = entries.flatMap((e) =>
+  const dbImages = entries.flatMap((e) =>
     (e.gallery ?? []).map((g) => ({
       url: mediaUrl(g),
       alt: e.title,
@@ -31,6 +31,15 @@ export default async function GalleryPage() {
   ).filter(
     (g): g is { url: string; alt: string; caption: string } => g.url !== null,
   );
+
+  const images = [
+    {
+      url: "/editorial_web_mockup.jpg",
+      alt: "Test Mockup Image",
+      caption: "Test Mockup Project",
+    },
+    ...dbImages,
+  ];
 
   const blogUrl = process.env.NEXT_PUBLIC_BLOG_URL;
 
