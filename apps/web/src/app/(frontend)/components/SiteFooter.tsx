@@ -34,7 +34,9 @@ export function SiteFooter({ profile, blogUrl }: SiteFooterProps) {
             <span className="footer-col-title mono">Navigate</span>
             <Link href="/">Home</Link>
             <Link href="/portfolio">Portfolio</Link>
+            <Link href="/gallery">Gallery</Link>
             <Link href="/stack">Tech Stack</Link>
+            {blogUrl ? <a href={blogUrl}>Blog</a> : null}
             <Link href="/#contact">Contact</Link>
           </nav>
 
@@ -45,7 +47,6 @@ export function SiteFooter({ profile, blogUrl }: SiteFooterProps) {
                 {s.label} ↗
               </a>
             ))}
-            {blogUrl ? <a href={blogUrl}>Blog ↗</a> : null}
           </nav>
         </div>
 
