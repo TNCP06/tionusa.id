@@ -54,7 +54,7 @@ export default buildConfig({
     // disabled by Payload, so prod runs committed migrations on connect —
     // this is what creates tables for new collections on the VPS. After any
     // schema change: `pnpm --filter web payload migrate:create <name>`, commit.
-    push: true,
+    push: process.env.NODE_ENV !== "production",
     prodMigrations: migrations,
   }),
   sharp,

@@ -18,6 +18,7 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 # Config init needs these; values are irrelevant to the build output.
 ENV PAYLOAD_SECRET=build-time-placeholder
