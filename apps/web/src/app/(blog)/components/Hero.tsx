@@ -24,8 +24,7 @@ const CAT: Record<string, string> = {
   tips: "TIPS",
 };
 
-const mediaUrl = (v: Article["coverImage"]): string | null =>
-  typeof v === "object" && v && "url" in v ? (v.url ?? null) : null;
+const media = (v: Article["coverImage"]) => (typeof v === "object" && v ? v : null);
 
 const fmtDate = (iso?: string | null): string | null => {
   if (!iso) return null;
@@ -80,7 +79,7 @@ export function Hero({ slides }: { slides: Slide[] }) {
 
   if (!slides.length) return null;
   const s = slides[i];
-  const cover = mediaUrl(s.coverImage);
+  const cover = media(s.coverImage);
   const date = fmtDate(s.publishedAt);
   const multi = slides.length > 1;
 
@@ -97,8 +96,17 @@ export function Hero({ slides }: { slides: Slide[] }) {
       onTouchEnd={onTouchEnd}
     >
       <a className="k-carousel__link" href={`/${s.slug}`} aria-label={s.title}>
-        {cover ? (
-          <img className="k-carousel__img" src={cover} alt="" />
+        {cover?.url ? (
+          // Above the fold on every visit — this is the LCP element.
+          <img
+            className="k-carousel__img"
+            src={cover.url}
+            alt=""
+            width={cover.width ?? undefined}
+            height={cover.height ?? undefined}
+            fetchPriority="high"
+            decoding="async"
+          />
         ) : (
           <div className="k-carousel__img k-carousel__img--ph" />
         )}
