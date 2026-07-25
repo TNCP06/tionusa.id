@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPayload } from "payload";
 import config from "@payload-config";
-import { markdownToLexical } from "@/lib/ingest";
+import { markdownToLexical, safeLinks } from "@/lib/ingest";
 
 function authorized(req: NextRequest): boolean {
   const secret = process.env.INGEST_SECRET;
@@ -66,8 +66,8 @@ export async function POST(req: NextRequest) {
     entryType: entryType || "project",
     summary: summary ?? "",
     ...(bodyMarkdown ? { body: await markdownToLexical(String(bodyMarkdown)) } : {}),
-    techStack: Array.isArray(techStack) ? techStack : [],
-    links: Array.isArray(links) ? links : [],
+    techStack: Array.isArray(techStack) ? techStack.filter((t) => typeof t === "string") : [],
+    links: safeLinks(links),
     ...(startDate ? { startDate } : {}),
     ...(endDate ? { endDate } : {}),
     isOngoing: !!isOngoing,
