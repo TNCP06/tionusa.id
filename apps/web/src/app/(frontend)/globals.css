@@ -225,7 +225,15 @@ img {
   backdrop-filter: saturate(140%) blur(14px);
   -webkit-backdrop-filter: saturate(140%) blur(14px);
   border-bottom: 1px solid var(--line);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.site-nav--hidden {
+  transform: translateY(-100%);
+}
+
+.site-nav--scrolled {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
 .nav-inner {
@@ -769,6 +777,35 @@ img {
   margin-bottom: 0.5rem;
 }
 
+.prose blockquote {
+  border-left: 2px solid var(--gold);
+  padding-left: 1.25rem;
+  margin: 1.5rem 0;
+  color: var(--ink);
+  font-style: italic;
+}
+
+.prose pre {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 1.25rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  margin: 1.5rem 0;
+}
+
+.prose code {
+  font-family: var(--font-mono);
+  background: var(--paper-alt);
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.88em;
+  color: var(--gold);
+}
+
 /* ── Work ledger (editorial index) ─────────────────────────────── */
 .project-ledger-container {
   display: flex;
@@ -1161,7 +1198,7 @@ img {
   gap: 1.75rem 3rem;
   margin-top: 2.5rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--line);
 }
 
 .meta-item {

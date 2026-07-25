@@ -41,7 +41,7 @@ export default async function PortfolioDetail({ params }: Params) {
   return (
     <>
       <div className="bands">
-      <main className="band-light" style={{ paddingBottom: "clamp(3rem, 7vw, 5rem)" }}>
+      <main style={{ paddingBottom: "clamp(3rem, 7vw, 5rem)" }}>
         <div className="wrap">
         <Link className="back" href="/portfolio">
           ← Back to archive

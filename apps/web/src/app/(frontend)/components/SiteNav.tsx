@@ -10,8 +10,34 @@ const blogUrl = process.env.NEXT_PUBLIC_BLOG_URL || "/blog";
 
 export function SiteNav() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const close = () => setMenuOpen(false);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrolled(currentScrollY > 20);
+
+      if (currentScrollY < 80) {
+        setVisible(true);
+      } else {
+        if (currentScrollY > lastScrollY && currentScrollY - lastScrollY > 8) {
+          setVisible(false);
+        } else if (lastScrollY - currentScrollY > 8) {
+          setVisible(true);
+        }
+      }
+
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (menuOpen) {
@@ -32,7 +58,11 @@ export function SiteNav() {
 
   return (
     <>
-      <nav className="site-nav">
+      <nav
+        className={`site-nav${scrolled ? " site-nav--scrolled" : ""}${
+          !visible && !menuOpen ? " site-nav--hidden" : ""
+        }`}
+      >
         <div className="nav-inner wrap">
           <div className="nav-brand-group">
             <Link className="nav-brand" href="/" onClick={close}>

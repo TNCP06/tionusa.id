@@ -59,7 +59,6 @@ export default async function GalleryPage({ searchParams }: Params) {
     <>
       <div className="bands">
         <main
-          className="band-light"
           style={{ paddingBottom: "clamp(3rem, 7vw, 5rem)" }}
         >
           <div className="wrap">
