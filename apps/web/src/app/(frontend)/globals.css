@@ -505,6 +505,13 @@ img {
   margin: 0;
 }
 
+.name.subpage-title {
+  font-size: clamp(2.5rem, 6.5vw, 5.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  max-width: 22ch;
+}
+
 .headline {
   font-size: clamp(1rem, 1.4vw, 1.15rem);
   line-height: 1.55;

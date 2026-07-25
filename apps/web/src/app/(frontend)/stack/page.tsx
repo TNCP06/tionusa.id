@@ -30,7 +30,7 @@ export default async function StackPage() {
             <p className="mono" style={{ marginBottom: "1.5rem" }}>
               Tech Stack &amp; Tooling
             </p>
-            <h1 className="name" style={{ maxWidth: "18ch" }}>
+            <h1 className="name subpage-title">
               The tools I build with.
             </h1>
             <p className="headline" style={{ maxWidth: "60ch" }}>
