@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublishedEntries, getProfile } from "@/lib/payload";
+import { galleryImages } from "@/lib/format";
 import { GalleryGrid } from "../components/GalleryGrid";
 import { SiteFooter } from "../components/SiteFooter";
 
@@ -10,11 +11,6 @@ export const metadata: Metadata = {
   title: "Gallery",
   description: "Visual showcase of projects and work.",
 };
-
-const mediaUrl = (v: unknown): string | null =>
-  typeof v === "object" && v !== null && "url" in v
-    ? ((v as { url?: string }).url ?? null)
-    : null;
 
 type Params = { searchParams: Promise<{ page?: string }> };
 
@@ -28,15 +24,7 @@ export default async function GalleryPage({ searchParams }: Params) {
     getProfile(),
   ]);
 
-  const images = entries.flatMap((e) =>
-    (e.gallery ?? []).map((g) => ({
-      url: mediaUrl(g),
-      alt: e.title,
-      caption: e.title,
-    })),
-  ).filter(
-    (g): g is { url: string; alt: string; caption: string } => g.url !== null,
-  );
+  const images = galleryImages(entries);
 
   const totalPages = Math.ceil(images.length / itemsPerPage);
   const visibleImages = images.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);

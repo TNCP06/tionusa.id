@@ -1,6 +1,6 @@
 # Code map
 
-> Last verified against code: 2026-07-20 (Atelier Editorial UI redesign)
+> Last verified against code: 2026-07-25 (colour imagery, manual gallery order, blog asset rewrite fix)
 > Purpose: token-cheap entry point. For each area, read only the files listed.
 
 | Area | Read |
@@ -50,7 +50,11 @@
 Notes:
 - UI is **Atelier Editorial** (Modern Editorial Minimalism): Gallery Cream / Obsidian /
   Gold, Playfair Display + Hanken Grotesk + JetBrains Mono (`layout.tsx`), sharp 0px
-  corners, 1px hairlines, no shadows, grayscale imagery. Theme defaults to **light**
+  corners, 1px hairlines, no shadows. Imagery is **full colour** everywhere except the
+  About portrait (`.about-figure`, grayscale → colour on hover). Gallery / Visual Showcase
+  order is owner-controlled: `PortfolioEntries.galleryOrder` (1 = first, empty = last)
+  then the drag order of the entry's `gallery` field; both pages read
+  `galleryImages()` from `lib/format.ts`. Theme defaults to **light**
   (`themeScript` in `layout.tsx`); obsidian dark variant via the `[data-theme="dark"]`
   block. `SiteFooter` is shared across home/portfolio/detail/stack. The Tech Stack
   page (`/stack`) lists tools as **static content** (a `GROUPS` array in the page — no collection).

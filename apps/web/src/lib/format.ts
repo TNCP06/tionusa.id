@@ -1,5 +1,31 @@
 import type { PortfolioEntry } from "../payload-types";
 
+export type GalleryImage = { url: string; alt: string; caption: string };
+
+export const mediaUrl = (v: unknown): string | null =>
+  typeof v === "object" && v !== null && "url" in v
+    ? ((v as { url?: string }).url ?? null)
+    : null;
+
+/**
+ * Flat, owner-controlled image list for the Gallery page and the homepage
+ * Visual Showcase. Order = entry `galleryOrder` (1 first, empty last), then the
+ * drag order of each entry's `gallery` field. Sort is stable, so entries without
+ * a galleryOrder keep the incoming portfolio order.
+ */
+export function galleryImages(entries: PortfolioEntry[]): GalleryImage[] {
+  return [...entries]
+    .sort((a, b) => (a.galleryOrder || Infinity) - (b.galleryOrder || Infinity))
+    .flatMap((e) =>
+      (e.gallery ?? []).map((g) => ({
+        url: mediaUrl(g),
+        alt: e.title,
+        caption: e.title,
+      })),
+    )
+    .filter((g): g is GalleryImage => g.url !== null);
+}
+
 export const ENTRY_TYPE_LABEL: Record<string, string> = {
   project: "Project",
   work_experience: "Work",

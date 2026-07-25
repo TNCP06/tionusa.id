@@ -6,6 +6,7 @@ import { EntryRow } from "./components/EntryRow";
 import { ContactForm } from "./components/ContactForm";
 import { SiteFooter } from "./components/SiteFooter";
 import { GalleryGrid } from "./components/GalleryGrid";
+import { galleryImages, mediaUrl } from "@/lib/format";
 
 // Rendered on demand (DB is a runtime volume); data is cached via tags.
 export const dynamic = "force-dynamic";
@@ -19,11 +20,6 @@ export async function generateMetadata(): Promise<Metadata> {
       "Fullstack Developer — React, Next.js, Node, and the data layers behind them.",
   };
 }
-
-const mediaUrl = (v: unknown): string | null =>
-  typeof v === "object" && v !== null && "url" in v
-    ? ((v as { url?: string }).url ?? null)
-    : null;
 
 export default async function Home() {
   const [profile, entries] = await Promise.all([
@@ -44,15 +40,7 @@ export default async function Home() {
     entries.flatMap((e) => (e.techStack ?? []).filter(Boolean) as string[]),
   ).size;
 
-  const galleryImages = entries.flatMap((e) =>
-    (e.gallery ?? []).map((g) => ({
-      url: mediaUrl(g),
-      alt: e.title,
-      caption: e.title,
-    })),
-  ).filter(
-    (g): g is { url: string; alt: string; caption: string } => g.url !== null,
-  );
+  const images = galleryImages(entries);
 
   return (
     <>
@@ -197,7 +185,7 @@ export default async function Home() {
       </section>
 
       {/* ── Curated Gallery Showcase ────────────────────────────────── */}
-      {galleryImages.length > 0 ? (
+      {images.length > 0 ? (
         <section className="section" id="gallery" aria-label="Visual Gallery">
           <div className="wrap">
             <div className="section-head">
@@ -206,10 +194,10 @@ export default async function Home() {
                   Visual Showcase <span className="arrow">→</span>
                 </Link>
               </h2>
-              <span className="mono">Gallery · {String(galleryImages.length).padStart(2, "0")}</span>
+              <span className="mono">Gallery · {String(images.length).padStart(2, "0")}</span>
             </div>
 
-            <GalleryGrid images={galleryImages.slice(0, 6)} />
+            <GalleryGrid images={images.slice(0, 6)} />
 
             <div className="ledger-actions" style={{ marginTop: "3rem" }}>
               <Link className="btn" href="/gallery">

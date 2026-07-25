@@ -71,7 +71,25 @@ export const PortfolioEntries: CollectionConfig = {
       ],
     },
     { name: "coverImage", type: "upload", relationTo: "media" },
-    { name: "gallery", type: "upload", relationTo: "media", hasMany: true },
+    {
+      name: "gallery",
+      type: "upload",
+      relationTo: "media",
+      hasMany: true,
+      admin: {
+        description:
+          "Drag to reorder — this is the order images appear in the Gallery / Visual Showcase.",
+      },
+    },
+    {
+      name: "galleryOrder",
+      type: "number",
+      admin: {
+        position: "sidebar",
+        description:
+          "Position of this entry's images in the Gallery. 1 = first. Empty = after all numbered entries.",
+      },
+    },
     {
       name: "featured",
       type: "checkbox",

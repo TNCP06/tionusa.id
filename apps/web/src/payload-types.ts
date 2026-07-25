@@ -217,7 +217,14 @@ export interface PortfolioEntry {
       }[]
     | null;
   coverImage?: (number | null) | Media;
+  /**
+   * Drag to reorder — this is the order images appear in the Gallery / Visual Showcase.
+   */
   gallery?: (number | Media)[] | null;
+  /**
+   * Position of this entry's images in the Gallery. 1 = first. Empty = after all numbered entries.
+   */
+  galleryOrder?: number | null;
   featured?: boolean | null;
   priorityScore?: number | null;
   externalId?: string | null;
@@ -476,6 +483,7 @@ export interface PortfolioEntriesSelect<T extends boolean = true> {
       };
   coverImage?: T;
   gallery?: T;
+  galleryOrder?: T;
   featured?: T;
   priorityScore?: T;
   externalId?: T;

@@ -3,6 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 // Serve the KANAL blog from the `blog.` subdomain by rewriting its paths onto
 // the (blog) route group's `_blog/*` segment. Portfolio host (tncp.web.id) is
 // untouched — the rewrite only fires when Host starts with `blog.`.
+// Files in public/ (favicon, OG image…) are served from the root on every host,
+// so they must never be rewritten onto /_blog. Extensions of blog *routes*
+// (rss.xml, sitemap.xml, robots.txt) are deliberately absent from this list.
+const PUBLIC_ASSET = /\.(svg|png|jpe?g|webp|gif|ico|woff2?|css|js|map)$/i;
+
 export function middleware(req: NextRequest) {
   const host = req.headers.get("host") ?? "";
   const isBlog = host.startsWith("blog.");
@@ -26,7 +31,8 @@ export function middleware(req: NextRequest) {
     isBlog &&
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/api") &&
-    !pathname.startsWith("/_blog")
+    !pathname.startsWith("/_blog") &&
+    !PUBLIC_ASSET.test(pathname)
   ) {
     const url = req.nextUrl.clone();
     url.pathname = `/_blog${pathname}`;
