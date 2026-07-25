@@ -17,11 +17,16 @@ jobs:
       - run: pnpm typecheck
       # Apply migrations once before the build; next build's parallel workers
       # otherwise race prodMigrations on the same SQLite file (SQLITE_BUSY).
+      # NODE_ENV=production mirrors the Docker builder stage: it turns off the
+      # drizzle dev `push`, which would otherwise re-CREATE the tables migrate
+      # just made ("table `users_sessions` already exists").
       - run: pnpm --filter web payload migrate
         env:
+          NODE_ENV: production
           PAYLOAD_SECRET: ci-placeholder
           DATABASE_URI: file:/tmp/ci.db
       - run: pnpm build
         env:
+          NODE_ENV: production
           PAYLOAD_SECRET: ci-placeholder
           DATABASE_URI: file:/tmp/ci.db
