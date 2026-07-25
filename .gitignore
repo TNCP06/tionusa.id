@@ -26,6 +26,9 @@ CLAUDE.md
 # Brainstorm visual-companion artifacts
 .superpowers/
 
+# Codebase-graph tool output
+graphify-out/
+
 # Editor / OS
 .DS_Store
 Thumbs.db
