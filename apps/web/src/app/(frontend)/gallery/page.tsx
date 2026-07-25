@@ -112,7 +112,7 @@ export default async function GalleryPage({ searchParams }: Params) {
                         <Link
                           key={page}
                           href={`/gallery?page=${page}`}
-                          className={`btn-show-more${currentPage === page ? " filter-tab--active" : ""}`}
+                          className="btn-show-more"
                           style={{
                             minWidth: "2.75rem",
                             background: currentPage === page ? "var(--ink)" : "transparent",

@@ -1251,10 +1251,15 @@ img {
   width: 100%;
   aspect-ratio: 16 / 10;
   padding: 0;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background: var(--paper-alt);
   cursor: pointer;
   overflow: hidden;
+  outline: none;
+}
+
+.gallery-item:focus-visible {
+  border-color: var(--gold);
 }
 
 .gallery-item img {
@@ -1313,7 +1318,8 @@ img {
   max-width: 90vw;
   max-height: 85vh;
   object-fit: contain;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

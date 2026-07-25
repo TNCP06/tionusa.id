@@ -151,7 +151,7 @@ export function ProjectLedger({
             return (
               <button
                 key={page}
-                className={`btn-show-more${currentPage === page ? " filter-tab--active" : ""}`}
+                className="btn-show-more"
                 onClick={() => setCurrentPage(page)}
                 type="button"
                 style={{
