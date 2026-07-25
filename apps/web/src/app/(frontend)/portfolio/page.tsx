@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const profile = await getProfile();
   return {
     title: `Portfolio · ${profile.fullName || "Tionusa Catur Pamungkas"}`,
-    description: "Full list of engineering work across backend, data, and cloud.",
+    description: "Selected web applications, frontend design systems, and fullstack projects.",
   };
 }
 
@@ -31,9 +31,7 @@ export default async function PortfolioPage() {
           </p>
           <h1 className="name">Selected Work</h1>
           <p className="headline" style={{ maxWidth: "60ch" }}>
-            Every system I&rsquo;ve designed and shipped — backend services, data
-            pipelines, and cloud infrastructure. Filter by category, or open any
-            entry for the full breakdown.
+            Web applications, interactive interfaces, and fullstack systems I&rsquo;ve designed and shipped. Filter by category, or open any entry for the full breakdown.
           </p>
         </div>
       </header>

@@ -33,7 +33,9 @@ export const metadata: Metadata = {
     default: "Tionusa Catur Pamungkas",
     template: "%s · Tionusa Catur Pamungkas",
   },
-  description: "Fullstack developer — systems, data, and cloud.",
+  description:
+    "Fullstack Developer — React, Next.js, Node, and the data layers behind them.",
+  icons: { icon: "/icon.svg" },
 };
 
 export default function FrontendLayout({

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { RichText } from "@payloadcms/richtext-lexical/react";
 import { getProfile, getPublishedEntries } from "@/lib/payload";
-import { ProjectLedger } from "./components/ProjectLedger";
+import { EntryRow } from "./components/EntryRow";
 import { ContactForm } from "./components/ContactForm";
 import { SiteFooter } from "./components/SiteFooter";
 import { GalleryGrid } from "./components/GalleryGrid";
@@ -14,7 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const profile = await getProfile();
   return {
     title: profile.fullName || "Tionusa Catur Pamungkas",
-    description: profile.headline || "Fullstack developer — systems, data, and cloud.",
+    description:
+      profile.headline ||
+      "Fullstack Developer — React, Next.js, Node, and the data layers behind them.",
   };
 }
 
@@ -29,9 +31,9 @@ export default async function Home() {
     getPublishedEntries(),
   ]);
 
-  const blogUrl = process.env.NEXT_PUBLIC_BLOG_URL;
+  const blogUrl = process.env.NEXT_PUBLIC_BLOG_URL || "/blog";
   const cvUrl = mediaUrl(profile.cvFile);
-  const photoUrl = mediaUrl(profile.photo);
+  const photoUrl = mediaUrl(profile.photo) || "/profile.jpg";
 
   // Homepage teaser: featured first, capped at 4.
   const homeEntries = [...entries]
@@ -42,7 +44,7 @@ export default async function Home() {
     entries.flatMap((e) => (e.techStack ?? []).filter(Boolean) as string[]),
   ).size;
 
-  const dbGalleryImages = entries.flatMap((e) =>
+  const galleryImages = entries.flatMap((e) =>
     (e.gallery ?? []).map((g) => ({
       url: mediaUrl(g),
       alt: e.title,
@@ -52,23 +54,14 @@ export default async function Home() {
     (g): g is { url: string; alt: string; caption: string } => g.url !== null,
   );
 
-  const galleryImages = [
-    {
-      url: "/editorial_web_mockup.jpg",
-      alt: "Test Mockup Image",
-      caption: "Test Mockup Project",
-    },
-    ...dbGalleryImages,
-  ];
-
   return (
     <>
       <div className="bands">
-      {/* ── Hero: editorial split ─────────────────────────────── */}
+      {/* ── Hero: oversized display type, full margin-to-margin ── */}
       <header className="hero">
         <div className="wrap">
-          <div className="hero-grid" style={{ gridTemplateColumns: "1fr" }}>
-            <div className="hero-info" style={{ maxWidth: "60ch" }}>
+          <div className="hero-grid">
+            <div className="hero-info">
               <p className="eyebrow">
                 <span
                   className={`status-dot${profile.availableForWork ? " status-dot--ok" : ""}`}
@@ -82,8 +75,8 @@ export default async function Home() {
               <h1 className="name">Tionusa</h1>
 
               <p className="headline">
-                I build dependable backends — data pipelines, cloud
-                infrastructure, and systems that scale quietly.
+                I build web applications end to end — interfaces that feel fast,
+                backed by APIs and data layers that hold up in production.
               </p>
 
               <div className="actions">
@@ -104,54 +97,64 @@ export default async function Home() {
         </div>
       </header>
 
-      {/* ── Philosophy / About ────────────────────────────────── */}
-      {profile.bio ? (
-        <section className="section band-dark" id="about" aria-label="About">
-          <div className="wrap">
-            <div className="section-head">
-              <h2>About Me</h2>
-              <span className="mono">Philosophy</span>
-            </div>
-            <div className="about-grid">
+      <section className="section band-dark" id="about" aria-label="About">
+        <div className="wrap">
+          <div className="section-head">
+            <h2>About Me</h2>
+            <span className="mono">Philosophy</span>
+          </div>
+          <div className="about-grid">
+            {photoUrl ? (
+              <figure className="about-figure" style={{ margin: 0 }}>
+                <img src={photoUrl} alt={profile.fullName || "Portrait"} loading="lazy" />
+                <figcaption>Portrait / {new Date().getFullYear()}</figcaption>
+              </figure>
+            ) : null}
+            <div className="about-body">
               <div className="prose">
-                <RichText data={profile.bio} />
+                <p>
+                  I build web applications end to end — from the interface a
+                  user touches down to the API, schema, and deployment that keep
+                  it running. Owning the whole path means fewer handoffs, fewer
+                  mismatched assumptions, and a product that behaves the same in
+                  production as it did in the mockup.
+                </p>
+                <p>
+                  On the frontend that means React, Next.js, and TypeScript:
+                  reusable component systems, careful state management, and
+                  interfaces tuned for Core Web Vitals. On the backend it means
+                  Node, relational schemas, and REST or GraphQL contracts
+                  designed to stay predictable as the product grows.
+                </p>
+                <p>
+                  Beyond the code, I handle what it takes to ship: Docker images,
+                  CI pipelines, self-hosted infrastructure, and the monitoring
+                  that tells me when something breaks — so the work does not stop
+                  at &ldquo;it runs on my machine.&rdquo;
+                </p>
               </div>
-              {photoUrl ? (
-                <figure className="about-figure" style={{ margin: 0 }}>
-                  <img src={photoUrl} alt={profile.fullName || "Portrait"} loading="lazy" />
-                  <figcaption>Portrait / {new Date().getFullYear()}</figcaption>
-                </figure>
-              ) : null}
             </div>
           </div>
-        </section>
-      ) : null}
+        </div>
+      </section>
 
-      {/* ── Stats band ────────────────────────────────────────── */}
+      {/* ── Facts band ────────────────────────────────────────── */}
       <section className="section" aria-label="At a glance">
         <div className="wrap">
-          <dl className="stats">
-            <div className="stat">
-              <dt>Availability</dt>
-              <dd>{profile.availableForWork ? "Open" : "Booked"}</dd>
+          <dl className="facts">
+            {profile.location ? (
+              <div>
+                <dt className="mono">Based in</dt>
+                <dd>{profile.location}</dd>
+              </div>
+            ) : null}
+            <div>
+              <dt className="mono">Projects</dt>
+              <dd>{String(entries.length).padStart(2, "0")}</dd>
             </div>
-            <div className="stat">
-              <dt>Focus</dt>
-              <dd className="stat-word">Backend &amp; Cloud</dd>
-            </div>
-            <div className="stat">
-              <dt>Projects Shipped</dt>
-              <dd>
-                {entries.length}
-                <span className="unit">+</span>
-              </dd>
-            </div>
-            <div className="stat">
-              <dt>Technologies</dt>
-              <dd>
-                {stackCount}
-                <span className="unit">+</span>
-              </dd>
+            <div>
+              <dt className="mono">Technologies</dt>
+              <dd>{stackCount}</dd>
             </div>
           </dl>
         </div>
@@ -171,11 +174,16 @@ export default async function Home() {
             </Link>
           </div>
 
-          <ProjectLedger
-            entries={homeEntries}
-            showFilters={false}
-            showAllLink={false}
-          />
+          {/* Rows straight from the server: the teaser has no filters or paging. */}
+          <div className="ledger">
+            {homeEntries.map((e, i) => (
+              <EntryRow
+                key={e.id}
+                entry={e}
+                num={String(i + 1).padStart(2, "0")}
+              />
+            ))}
+          </div>
 
           <div className="ledger-actions">
             <Link className="btn btn-primary" href="/portfolio">
@@ -223,8 +231,8 @@ export default async function Home() {
             <div className="contact-info">
               <h3 className="contact-title">Let&rsquo;s build something great together.</h3>
               <p className="contact-desc">
-                Available for freelance work — backend architecture, systems
-                engineering, database design, and cloud deployment. Send a
+                Available for freelance work — modern web applications, frontend
+                architecture, design systems, and responsive UI design. Send a
                 message and I&rsquo;ll reply.
               </p>
 
@@ -235,17 +243,42 @@ export default async function Home() {
                     Email me
                   </a>
                 ) : null}
-                {(profile.socials ?? []).map((s, i) => (
-                  <a
-                    key={i}
-                    className="btn"
-                    href={s.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {s.label} ↗
-                  </a>
-                ))}
+                {(profile.socials ?? []).map((s, i) => {
+                  let icon = null;
+                  if (s.kind === "github") {
+                    icon = (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: "0.45rem" }}>
+                        <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.79-.25.79-.55 0-.27-.01-1.16-.02-2.11-3.2.7-3.87-1.36-3.87-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.59.24 2.76.12 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.7 5.38-5.27 5.67.42.36.78 1.08.78 2.17 0 1.57-.01 2.83-.01 3.22 0 .3.21.66.8.55A10.99 10.99 0 0 0 23.5 12c0-6.35-5.15-11.5-11.5-11.5Z" />
+                      </svg>
+                    );
+                  } else if (s.kind === "linkedin") {
+                    icon = (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: "0.45rem" }}>
+                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                      </svg>
+                    );
+                  } else {
+                    icon = (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "0.45rem" }}>
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                      </svg>
+                    );
+                  }
+                  return (
+                    <a
+                      key={i}
+                      className="btn"
+                      href={s.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ display: "inline-flex", alignItems: "center" }}
+                    >
+                      {icon}
+                      {s.label}
+                    </a>
+                  );
+                })}
               </div>
             </div>
 

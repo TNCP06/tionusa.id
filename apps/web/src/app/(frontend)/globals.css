@@ -32,9 +32,9 @@
 
   --nav-bg: rgba(250, 249, 247, 0.82);
 
-  --font-display: var(--font-display, "Playfair Display", Georgia, serif);
-  --font-body: var(--font-body, "Hanken Grotesk", system-ui, -apple-system, sans-serif);
-  --font-mono: var(--font-mono, "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace);
+  /* --font-display / --font-body / --font-mono come from next/font on <html>.
+     Do not redeclare them here: a self-referential var() is a cycle and makes
+     the property invalid, dropping the whole site to the initial serif. */
 
   --wrap: 80rem;                 /* 1440px framed container */
   --gap: clamp(1.5rem, 4vw, 4rem);
@@ -98,7 +98,6 @@ body {
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.3s ease, color 0.3s ease;
-  overflow-x: hidden;
 }
 
 a {
@@ -115,6 +114,25 @@ img {
 ::selection {
   background: var(--ink);
   color: var(--paper);
+}
+
+/* ── Custom Sleek Scrollbar ───────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--paper);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--slate);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink);
 }
 
 :focus-visible {
@@ -168,7 +186,7 @@ img {
 /* JetBrains Mono utility label — the editorial "caption" voice */
 .mono {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--slate);
@@ -211,6 +229,7 @@ img {
 }
 
 .nav-inner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -222,6 +241,27 @@ img {
   display: inline-flex;
   align-items: center;
   gap: 0.9rem;
+}
+
+.nav-center-links {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.nav-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
 }
 
 .nav-brand {
@@ -253,7 +293,7 @@ img {
 
 .nav-link {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
@@ -277,11 +317,13 @@ img {
   transition: transform 0.25s ease;
 }
 
-.nav-link:hover {
+.nav-link:hover,
+.nav-link--active {
   color: var(--ink);
 }
 
-.nav-link:hover::after {
+.nav-link:hover::after,
+.nav-link--active::after {
   transform: scaleX(1);
 }
 
@@ -387,13 +429,18 @@ img {
   align-items: center;
   justify-content: center;
   gap: 0.7rem;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
 .btn:hover {
   background: var(--ink);
   color: var(--paper);
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
 }
 
 .btn-primary {
@@ -404,6 +451,7 @@ img {
 .btn-primary:hover {
   background: transparent;
   color: var(--ink);
+  transform: translateY(-2px);
 }
 
 /* ── Hero (editorial split) ────────────────────────────────────── */
@@ -414,7 +462,6 @@ img {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
   gap: clamp(2rem, 5vw, 4rem);
   align-items: center;
 }
@@ -450,9 +497,11 @@ img {
   100% { box-shadow: 0 0 0 0 rgba(63, 125, 78, 0); }
 }
 
+/* Single-column hero: the display type itself has to reach the right margin,
+   otherwise the row reads as a broken two-column layout. */
 .name {
-  font-size: clamp(2.75rem, 7vw, 5rem);
-  line-height: 1;
+  font-size: clamp(3.5rem, 15vw, 13rem);
+  line-height: 0.9;
   margin: 0;
 }
 
@@ -465,32 +514,41 @@ img {
   font-weight: 400;
 }
 
-/* right rail of the hero: short blurb + mono meta */
-.hero-aside {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding-top: 0.75rem;
-}
-
-.hero-aside p {
+/* ── Facts band (under About) ──────────────────────────────────── */
+.facts {
+  display: grid;
+  grid-template-columns: 1fr;
   margin: 0;
-  color: var(--ink-muted);
-  font-size: 1rem;
-  line-height: 1.6;
+  border-top: 1px solid var(--ink);
 }
 
-.hero-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem 2rem;
-  margin-top: 1.75rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--line);
+.facts > div {
+  padding: 1.5rem 0 0;
 }
 
-.hero-meta .mono {
-  color: var(--ink-muted);
+/* Once there is room, lay every fact out in a single row of equal columns.
+   auto-fit would stop at 2 tracks around 520-680px and strand the third
+   fact alone on a second row; grid-auto-flow makes exactly as many columns
+   as there are facts, so the row stays even however many render. */
+@media (min-width: 43rem) {
+  .facts {
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+  }
+
+  .facts > div + div {
+    border-left: 1px solid var(--line);
+    padding-left: clamp(1.25rem, 3vw, 2.5rem);
+  }
+}
+
+.facts dd {
+  margin: 0.6rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  line-height: 1.15;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .actions {
@@ -498,54 +556,6 @@ img {
   flex-wrap: wrap;
   gap: 1rem;
   margin-top: 2.75rem;
-}
-
-/* hero portrait (right column) */
-.hero-figure {
-  position: relative;
-  aspect-ratio: 1 / 1;
-  max-height: 24rem;
-  margin-inline: auto;
-  overflow: hidden;
-  background: var(--paper-alt);
-  border: 1px solid var(--ink);
-}
-
-.hero-figure img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(100%) contrast(1.08);
-  transition: filter 0.5s ease, transform 0.6s ease;
-}
-
-.hero-figure:hover img {
-  filter: grayscale(0%);
-  transform: scale(1.02);
-}
-
-.hero-figure figcaption {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  padding: 0.5rem 0.85rem;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--paper);
-  background: var(--ink);
-}
-
-/* placeholder when no portrait is set */
-.hero-figure-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--slate);
-  font-family: var(--font-display);
-  font-size: clamp(3rem, 10vw, 6rem);
-  font-weight: 700;
 }
 
 /* ── Sections ──────────────────────────────────────────────────── */
@@ -628,16 +638,46 @@ img {
   background: var(--paper-raised);
 }
 
+.adaptability-panel {
+  background: var(--paper-raised);
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
+}
+
+.adaptability-tag {
+  color: var(--slate);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  margin-bottom: 1rem;
+}
+
+.adaptability-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 1rem;
+}
+
+.adaptability-desc {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--ink-muted);
+  max-width: 68ch;
+}
+
 /* ── Philosophy / about block ──────────────────────────────────── */
 .about-grid {
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
-  gap: clamp(2rem, 6vw, 5rem);
-  align-items: start;
+  grid-template-columns: minmax(240px, 300px) 1fr;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: center;
 }
 
 .about-figure {
   position: relative;
+  width: 100%;
   aspect-ratio: 4 / 5;
   overflow: hidden;
   background: var(--paper-alt);
@@ -678,50 +718,12 @@ img {
   color: var(--ink);
 }
 
-/* ── Stats band ────────────────────────────────────────────────── */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(1.5rem, 4vw, 3rem);
-  text-align: center;
-}
-
-.stat dt {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--slate);
-  margin-bottom: 0.75rem;
-}
-
-.stat dd {
-  font-family: var(--font-display);
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
-  line-height: 1;
-  margin: 0;
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.stat dd .unit {
-  font-size: 0.4em;
-  font-weight: 400;
-  letter-spacing: 0.05em;
-  margin-left: 0.15em;
-}
-
-/* smaller serif for word-based stats (Focus, Availability) */
-.stat dd.stat-word {
-  font-size: clamp(1.5rem, 3vw, 2.1rem);
-  line-height: 1.1;
-}
-
 /* ── Prose (rich text) ─────────────────────────────────────────── */
 .prose {
   font-size: 1.1rem;
   line-height: 1.75;
   color: var(--ink-muted);
+  max-width: 68ch;
 }
 
 .prose p {
@@ -779,7 +781,7 @@ img {
   gap: clamp(1.5rem, 4vw, 3.5rem);
   padding-block: clamp(2rem, 4vw, 3rem);
   border-bottom: 1px solid var(--line);
-  align-items: start;
+  align-items: center;
   transition: background-color 0.3s ease;
 }
 
@@ -787,11 +789,129 @@ img {
   background-color: var(--paper-alt);
 }
 
+.entry--no-image {
+  grid-template-columns: 1fr;
+  padding-block: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.entry--no-image .entry-body {
+  width: 100%;
+}
+
+.entry--no-image .entry-summary {
+  max-width: 68ch;
+}
+
 .entry-figure {
   position: relative;
   aspect-ratio: 16 / 10;
   overflow: hidden;
   background: var(--paper-alt);
+}
+
+/* ── Generative Blueprint Spec Card (Option 1) ───────────────── */
+.blueprint-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--paper-raised);
+  border: 1px solid var(--line-strong);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem;
+  overflow: hidden;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.blueprint-grid-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  background-image: radial-gradient(var(--slate) 1px, transparent 1px);
+  background-size: 12px 12px;
+  pointer-events: none;
+}
+
+.blueprint-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.blueprint-tag {
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+}
+
+.blueprint-type {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.blueprint-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-block: auto;
+  padding-block: 0.25rem;
+}
+
+.blueprint-monogram {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  opacity: 0.9;
+  transition: color 0.3s ease;
+}
+
+.blueprint-title-sub {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  margin-top: 0.35rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.blueprint-footer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate);
+  border-top: 1px dashed var(--line);
+  padding-top: 0.5rem;
+}
+
+.blueprint-symbol {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.entry:hover .blueprint-card {
+  border-color: var(--ink);
+}
+
+.entry:hover .blueprint-monogram {
+  color: var(--gold);
 }
 
 .entry-thumbnail {
@@ -1081,7 +1201,7 @@ img {
 
 .gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr));
   gap: 1.5rem;
   margin-top: 3rem;
 }
@@ -1133,7 +1253,7 @@ img {
 /* Standalone showcase grid (slightly larger) */
 .gallery-showcase {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
   gap: 1.5rem;
   margin-top: 3rem;
 }
@@ -1254,7 +1374,7 @@ img {
 /* responsive card matrix — scales cleanly whether a group has 3 tools or 30 */
 .instruments-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(14rem, 100%), 1fr));
   gap: 1px;
   background: var(--line);
   border: 1px solid var(--line);
@@ -1334,7 +1454,9 @@ img {
   grid-template-columns: 1fr 1.05fr;
   gap: clamp(2rem, 5vw, 4rem);
   align-items: center;
-  border: 1px solid var(--ink);
+  /* same open-card language as .panel: hairline on top + left only */
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
   background: var(--paper-raised);
   padding: clamp(1.75rem, 4vw, 3rem);
 }
@@ -1459,7 +1581,7 @@ img {
 .field label,
 .field-label {
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--slate);
@@ -1694,27 +1816,28 @@ img {
     padding-bottom: 2rem;
     border-bottom: 1px solid var(--line);
   }
-  .hero-figure {
-    max-width: 22rem;
+  .about-figure {
+    max-width: 18rem;
   }
   .entry {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
   .entry-figure {
     order: -1;
+    aspect-ratio: 16 / 9;
   }
   .instruments-grid {
     grid-template-columns: 1fr;
-    gap: 1.25rem;
+    gap: 1.5rem;
+  }
+  .instrument {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
   .form-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
-  }
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
   }
   .footer-top {
     grid-template-columns: 1fr 1fr;
@@ -1723,40 +1846,198 @@ img {
   .footer-brand-block {
     grid-column: 1 / -1;
   }
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-controls {
+    display: flex !important;
+  }
   .nav-hamburger {
-    display: flex;
-  }
-  .nav-links {
-    display: none;
-  }
-  .nav-links--open {
-    display: flex;
-    position: fixed;
-    inset: 0;
-    top: 4.75rem;
-    background: #0e0e0e;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    z-index: 99;
-    padding: 2rem;
-  }
-  .nav-links--open .nav-link {
-    font-size: 0.85rem;
-    padding: 1rem 1.5rem;
-  }
-  .nav-links--open .nav-cta {
-    display: inline-flex;
-    margin-top: 1rem;
+    display: flex !important;
   }
 }
 
+/* ── Mobile Controls & Editorial Drawer Overlay ──────────────── */
+.mobile-controls {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #0e0e0e;
+  color: #f7f6f4;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-100%);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+}
+
+.mobile-menu-overlay--open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.mobile-menu-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100dvh;
+  padding: 1.5rem 1.5rem 2.5rem 1.5rem;
+}
+
+.mobile-menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.mobile-menu-tag {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: #a3a19e;
+  text-transform: uppercase;
+}
+
+.mobile-menu-close {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f7f6f4;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.mobile-menu-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #f7f6f4;
+}
+
+.mobile-nav-list {
+  list-style: none;
+  padding: 1.5rem 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-nav-list li {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.15rem 0.5rem;
+  text-decoration: none;
+  color: #b3b1ae;
+  transition: color 0.2s ease, padding-left 0.2s ease;
+}
+
+.mobile-nav-link .nav-num {
+  font-size: 0.75rem;
+  color: #73716e;
+  margin-right: 1.5rem;
+  letter-spacing: 0.1em;
+}
+
+.mobile-nav-link .nav-text {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #e5e3df;
+  flex: 1;
+}
+
+.mobile-nav-link .nav-arrow {
+  font-size: 1.3rem;
+  opacity: 0.3;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link.active {
+  color: #ffffff;
+  padding-left: 0.5rem;
+}
+
+.mobile-nav-link:hover .nav-text,
+.mobile-nav-link.active .nav-text {
+  color: #ffffff;
+}
+
+.mobile-nav-link:hover .nav-arrow,
+.mobile-nav-link.active .nav-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+.mobile-menu-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.mobile-cta-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.5rem;
+  background: #f7f6f4;
+  color: #0e0e0e;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.mobile-cta-btn:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.mobile-footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #8c8a87;
+}
+
+.mobile-meta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #b3b1ae;
+  text-decoration: none;
+}
+
+.mobile-meta-link:hover {
+  color: #ffffff;
+}
+
 @media (max-width: 40rem) {
-  .instrument {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
   .error-container {
     flex-direction: column;
     text-align: center;
@@ -1771,6 +2052,47 @@ img {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+  }
+}
+
+/* ── Monorepo Global Mobile Polish ────────────────────────────── */
+@media (max-width: 48rem) {
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 0.75rem;
+  }
+  .actions .btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .filter-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+
+  .ledger-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+  .ledger-actions .btn,
+  .ledger-actions .btn-show-more {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .about-figure {
+    max-width: 100%;
+    margin-bottom: 1.5rem;
   }
 }
 
