@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getProfile, getPublishedEntries } from "@/lib/payload";
 import { ProjectLedger } from "../components/ProjectLedger";
 import { SiteFooter } from "../components/SiteFooter";

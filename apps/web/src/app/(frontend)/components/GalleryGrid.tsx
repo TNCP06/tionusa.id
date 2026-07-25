@@ -10,21 +10,29 @@ interface GalleryImage {
 
 interface GalleryGridProps {
   images: GalleryImage[];
+  /** Optional array of all gallery images for continuous Lightbox navigation across pages. */
+  allImages?: GalleryImage[];
   /** CSS class for the grid container. Defaults to "gallery". */
   className?: string;
 }
 
-export function GalleryGrid({ images, className }: GalleryGridProps) {
+export function GalleryGrid({ images, allImages, className }: GalleryGridProps) {
+  const lightboxImages = allImages || images;
   const [active, setActive] = useState<number | null>(null);
+
+  const openImage = (item: GalleryImage) => {
+    const idx = lightboxImages.findIndex((img) => img.url === item.url);
+    setActive(idx !== -1 ? idx : 0);
+  };
 
   const close = useCallback(() => setActive(null), []);
   const prev = useCallback(
-    () => setActive((i) => (i !== null ? (i - 1 + images.length) % images.length : null)),
-    [images.length],
+    () => setActive((i) => (i !== null ? (i - 1 + lightboxImages.length) % lightboxImages.length : null)),
+    [lightboxImages.length],
   );
   const next = useCallback(
-    () => setActive((i) => (i !== null ? (i + 1) % images.length : null)),
-    [images.length],
+    () => setActive((i) => (i !== null ? (i + 1) % lightboxImages.length : null)),
+    [lightboxImages.length],
   );
 
   useEffect(() => {
@@ -51,7 +59,7 @@ export function GalleryGrid({ images, className }: GalleryGridProps) {
           <button
             key={i}
             className="gallery-item"
-            onClick={() => setActive(i)}
+            onClick={() => openImage(img)}
             type="button"
             aria-label={`View ${img.alt || "image"}`}
           >
@@ -81,7 +89,7 @@ export function GalleryGrid({ images, className }: GalleryGridProps) {
               <path d="M18 6 6 18" /><path d="m6 6 12 12" />
             </svg>
           </button>
-          {images.length > 1 ? (
+          {lightboxImages.length > 1 ? (
             <>
               <button
                 className="lightbox-nav lightbox-prev"
@@ -103,13 +111,13 @@ export function GalleryGrid({ images, className }: GalleryGridProps) {
           ) : null}
           <img
             className="lightbox-img"
-            src={images[active].url}
-            alt={images[active].alt || ""}
+            src={lightboxImages[active].url}
+            alt={lightboxImages[active].alt || ""}
             onClick={(e) => e.stopPropagation()}
           />
-          {images.length > 1 ? (
+          {lightboxImages.length > 1 ? (
             <span className="lightbox-counter mono">
-              {String(active + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}
+              {String(active + 1).padStart(2, "0")} / {String(lightboxImages.length).padStart(2, "0")}
             </span>
           ) : null}
         </div>
