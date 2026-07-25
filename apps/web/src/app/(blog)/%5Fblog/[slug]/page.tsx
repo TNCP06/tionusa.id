@@ -3,16 +3,18 @@ import { notFound } from "next/navigation";
 import { RichText } from "@payloadcms/richtext-lexical/react";
 import { getArticleBySlug, getRelated } from "@/lib/blog";
 import { ArticleCard } from "../../components/ArticleCard";
+import { ShareBar } from "../../components/ShareBar";
 
 type Params = { params: Promise<{ slug: string }> };
 
 // Rendered on demand (DB is a runtime volume); data is cached via tags (see lib/blog.ts).
 export const dynamic = "force-dynamic";
 
-const mediaUrl = (v: unknown): string | null =>
-  typeof v === "object" && v !== null && "url" in v
-    ? ((v as { url?: string }).url ?? null)
-    : null;
+const SITE = process.env.NEXT_PUBLIC_BLOG_URL || "https://blog.tncp.web.id";
+
+type Media = { url?: string | null; width?: number | null; height?: number | null };
+const media = (v: unknown): Media | null =>
+  typeof v === "object" && v !== null && "url" in v ? (v as Media) : null;
 
 const CAT: Record<string, string> = {
   hiburan: "HIBURAN",
@@ -27,7 +29,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const article = await getArticleBySlug(slug);
   if (!article) return { title: "Tak ditemukan" };
 
-  const cover = mediaUrl(article.coverImage);
+  const cover = media(article.coverImage)?.url;
 
   return {
     title: article.title,
@@ -49,8 +51,9 @@ export default async function ArticlePage({ params }: Params) {
   const article = await getArticleBySlug(slug);
   if (!article) notFound();
 
-  const cover = mediaUrl(article.coverImage);
+  const cover = media(article.coverImage);
   const related = await getRelated(article.category, slug);
+  const tags = (article.tags ?? []).filter(Boolean);
   const date = article.publishedAt
     ? new Date(article.publishedAt).toLocaleDateString("id-ID", {
         day: "numeric",
@@ -63,9 +66,12 @@ export default async function ArticlePage({ params }: Params) {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: article.title,
-    ...(cover ? { image: new URL(cover, process.env.NEXT_PUBLIC_BLOG_URL || "https://blog.tncp.web.id").toString() } : {}),
+    ...(cover?.url ? { image: new URL(cover.url, SITE).toString() } : {}),
     datePublished: article.publishedAt || undefined,
     dateModified: article.updatedAt,
+    articleSection: CAT[article.category] ?? article.category,
+    ...(article.readingTime ? { timeRequired: `PT${article.readingTime}M` } : {}),
+    ...(tags.length ? { keywords: tags.join(", ") } : {}),
     author: { "@type": "Organization", name: "KANAL" },
     publisher: { "@type": "Organization", name: "KANAL" },
   };
@@ -76,17 +82,42 @@ export default async function ArticlePage({ params }: Params) {
         ← Semua
       </a>
 
-      {cover ? (
-        <img className="k-article__cover" src={cover} alt={article.title} />
+      {cover?.url ? (
+        // Above the fold — this is the LCP element on an article page.
+        <img
+          className="k-article__cover"
+          src={cover.url}
+          alt={article.title}
+          width={cover.width ?? undefined}
+          height={cover.height ?? undefined}
+          fetchPriority="high"
+          decoding="async"
+        />
       ) : null}
 
       <span className="k-chip">{CAT[article.category] ?? article.category}</span>
       <h1 className="k-article__title">{article.title}</h1>
-      <p className="k-article__meta">{date}</p>
+      <p className="k-article__meta">
+        {date}
+        {date && article.readingTime ? " · " : null}
+        {article.readingTime ? `${article.readingTime} menit baca` : null}
+      </p>
+
+      <ShareBar url={`${SITE}/${slug}`} title={article.title} />
 
       {article.body ? (
         <div className="k-prose">
           <RichText data={article.body} />
+        </div>
+      ) : null}
+
+      {tags.length > 0 ? (
+        <div className="k-tags">
+          {tags.map((t) => (
+            <a key={t} className="k-tag" href={`/?tag=${encodeURIComponent(t)}`}>
+              #{t}
+            </a>
+          ))}
         </div>
       ) : null}
 

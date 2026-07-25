@@ -1,6 +1,7 @@
 import { getPayload } from "payload";
 import config from "@payload-config";
 import { unstable_cache } from "next/cache";
+import type { Where } from "payload";
 import type { Article } from "../payload-types";
 
 const payloadPromise = getPayload({ config });
@@ -21,16 +22,25 @@ export const getFeaturedArticles = unstable_cache(
   ["blog-featured"], { tags: ["blog-featured"] },
 );
 
-export async function getArticles(opts: { category?: string; limit?: number; page?: number } = {}) {
-  const { category, limit = 12, page = 1 } = opts;
+export async function getArticles(opts: { category?: string; tag?: string; limit?: number; page?: number } = {}) {
+  const { category, tag, limit = 12, page = 1 } = opts;
   return unstable_cache(
     async () => {
       const payload = await payloadPromise;
-      const where = category ? { and: [PUBLISHED, { category: { equals: category } }] } : PUBLISHED;
-      const res = await payload.find({ collection: "articles", locale: "id", depth: 1, limit, page, where, sort: "-publishedAt" });
+      const filters: Where[] = [
+        PUBLISHED,
+        ...(category ? [{ category: { equals: category } }] : []),
+        // `tags` is hasMany — `in` matches a doc when any of its values matches.
+        ...(tag ? [{ tags: { in: [tag] } }] : []),
+      ];
+      const res = await payload.find({
+        collection: "articles", locale: "id", depth: 1, limit, page,
+        where: filters.length > 1 ? { and: filters } : PUBLISHED,
+        sort: "-publishedAt",
+      });
       return { docs: res.docs as Article[], hasMore: res.hasNextPage ?? false };
     },
-    ["blog-list", category ?? "all", String(page), String(limit)], { tags: ["articles"] },
+    ["blog-list", category ?? "all", tag ?? "all", String(page), String(limit)], { tags: ["articles"] },
   )();
 }
 
@@ -46,11 +56,16 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 }
 
 export async function getRelated(category: string, excludeSlug: string): Promise<Article[]> {
-  const payload = await payloadPromise;
-  const { docs } = await payload.find({
-    collection: "articles", locale: "id", depth: 1, limit: 3,
-    where: { and: [PUBLISHED, { category: { equals: category } }, { slug: { not_equals: excludeSlug } }] },
-    sort: "-publishedAt",
-  });
-  return docs as Article[];
+  return unstable_cache(
+    async () => {
+      const payload = await payloadPromise;
+      const { docs } = await payload.find({
+        collection: "articles", locale: "id", depth: 1, limit: 3,
+        where: { and: [PUBLISHED, { category: { equals: category } }, { slug: { not_equals: excludeSlug } }] },
+        sort: "-publishedAt",
+      });
+      return docs as Article[];
+    },
+    ["blog-related", category, excludeSlug], { tags: ["articles"] },
+  )();
 }
