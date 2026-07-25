@@ -63,9 +63,8 @@ export default async function Home() {
               <h1 className="name">Tionusa</h1>
 
               <p className="headline">
-                Ship production apps without the usual handoff mess — I own the
-                frontend, the backend, and the deploy, so nothing gets lost in
-                translation.
+                {profile.headline ||
+                  "Ship production apps without the usual handoff mess — I own the frontend, the backend, and the deploy, so nothing gets lost in translation."}
               </p>
 
               <div className="actions">
@@ -101,26 +100,32 @@ export default async function Home() {
             ) : null}
             <div className="about-body">
               <div className="prose">
-                <p>
-                  Most projects lose weeks to handoffs — design to frontend,
-                  frontend to backend, backend to whoever manages the server. I
-                  close that gap by owning the whole path myself: fewer
-                  mismatched assumptions, and what you approve in the mockup is
-                  what ships to production.
-                </p>
-                <p>
-                  React, Next.js, and TypeScript on the frontend — component
-                  systems built to be reused, not rebuilt per page, tuned for
-                  Core Web Vitals. Node and relational schemas on the backend,
-                  with REST or GraphQL contracts that stay stable as the product
-                  grows.
-                </p>
-                <p>
-                  It does not stop at code: Docker images, CI pipelines,
-                  self-hosted infrastructure, and monitoring that flags problems
-                  before your users do. &ldquo;It runs on my machine&rdquo; is
-                  not a deliverable — a running product is.
-                </p>
+                {profile.bio ? (
+                  <RichText data={profile.bio} />
+                ) : (
+                  <>
+                    <p>
+                      Most projects lose weeks to handoffs — design to frontend,
+                      frontend to backend, backend to whoever manages the server. I
+                      close that gap by owning the whole path myself: fewer
+                      mismatched assumptions, and what you approve in the mockup is
+                      what ships to production.
+                    </p>
+                    <p>
+                      React, Next.js, and TypeScript on the frontend — component
+                      systems built to be reused, not rebuilt per page, tuned for
+                      Core Web Vitals. Node and relational schemas on the backend,
+                      with REST or GraphQL contracts that stay stable as the product
+                      grows.
+                    </p>
+                    <p>
+                      It does not stop at code: Docker images, CI pipelines,
+                      self-hosted infrastructure, and monitoring that flags problems
+                      before your users do. &ldquo;It runs on my machine&rdquo; is
+                      not a deliverable — a running product is.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>
