@@ -1,6 +1,11 @@
 import type { PortfolioEntry } from "../payload-types";
 
-export type GalleryImage = { url: string; alt: string; caption: string };
+export type GalleryImage = {
+  url: string;
+  alt: string;
+  caption: string;
+  slug?: string;
+};
 
 export const mediaUrl = (v: unknown): string | null =>
   typeof v === "object" && v !== null && "url" in v
@@ -14,16 +19,24 @@ export const mediaUrl = (v: unknown): string | null =>
  * a galleryOrder keep the incoming portfolio order.
  */
 export function galleryImages(entries: PortfolioEntry[]): GalleryImage[] {
-  return [...entries]
-    .sort((a, b) => (a.galleryOrder || Infinity) - (b.galleryOrder || Infinity))
-    .flatMap((e) =>
-      (e.gallery ?? []).map((g) => ({
-        url: mediaUrl(g),
-        alt: e.title,
-        caption: e.title,
-      })),
-    )
-    .filter((g): g is GalleryImage => g.url !== null);
+  const result: GalleryImage[] = [];
+  const sorted = [...entries].sort(
+    (a, b) => (a.galleryOrder || Infinity) - (b.galleryOrder || Infinity),
+  );
+  for (const e of sorted) {
+    for (const g of e.gallery ?? []) {
+      const url = mediaUrl(g);
+      if (url) {
+        result.push({
+          url,
+          alt: e.title,
+          caption: e.title,
+          slug: e.slug || undefined,
+        });
+      }
+    }
+  }
+  return result;
 }
 
 export const ENTRY_TYPE_LABEL: Record<string, string> = {

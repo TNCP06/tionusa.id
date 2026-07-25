@@ -25,9 +25,9 @@ export function SiteNav() {
       if (currentScrollY < 80) {
         setVisible(true);
       } else {
-        if (currentScrollY > lastScrollY && currentScrollY - lastScrollY > 8) {
+        if (currentScrollY > lastScrollY && currentScrollY - lastScrollY > 15) {
           setVisible(false);
-        } else if (lastScrollY - currentScrollY > 8) {
+        } else if (lastScrollY - currentScrollY > 15) {
           setVisible(true);
         }
       }

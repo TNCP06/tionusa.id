@@ -225,11 +225,14 @@ img {
   backdrop-filter: saturate(140%) blur(14px);
   -webkit-backdrop-filter: saturate(140%) blur(14px);
   border-bottom: 1px solid var(--line);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease, background-color 0.3s ease, border-color 0.3s ease;
+  will-change: transform, opacity;
 }
 
 .site-nav--hidden {
   transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .site-nav--scrolled {
@@ -1371,6 +1374,32 @@ img {
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.8rem;
   z-index: 210;
+}
+
+.lightbox-detail-btn {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 2rem;
+  z-index: 210;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.45rem 0.9rem;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.lightbox-detail-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-1px);
 }
 
 @keyframes fadeIn {

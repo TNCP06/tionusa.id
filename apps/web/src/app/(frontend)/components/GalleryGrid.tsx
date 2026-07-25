@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 interface GalleryImage {
   url: string;
   alt?: string;
   caption?: string;
+  slug?: string;
 }
 
 interface GalleryGridProps {
@@ -119,6 +121,15 @@ export function GalleryGrid({ images, allImages, className }: GalleryGridProps) 
             <span className="lightbox-counter mono">
               {String(active + 1).padStart(2, "0")} / {String(lightboxImages.length).padStart(2, "0")}
             </span>
+          ) : null}
+          {lightboxImages[active].slug ? (
+            <Link
+              href={`/portfolio/${lightboxImages[active].slug}`}
+              className="lightbox-detail-btn"
+              onClick={(e) => e.stopPropagation()}
+            >
+              View Case Study →
+            </Link>
           ) : null}
         </div>
       ) : null}
