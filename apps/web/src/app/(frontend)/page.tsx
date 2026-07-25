@@ -7,6 +7,7 @@ import { ContactForm } from "./components/ContactForm";
 import { SiteFooter } from "./components/SiteFooter";
 import { GalleryGrid } from "./components/GalleryGrid";
 import { galleryImages, mediaUrl } from "@/lib/format";
+import { stackCount } from "@/lib/stack";
 
 // Rendered on demand (DB is a runtime volume); data is cached via tags.
 export const dynamic = "force-dynamic";
@@ -36,9 +37,8 @@ export default async function Home() {
     .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
     .slice(0, 4);
 
-  const stackCount = new Set(
-    entries.flatMap((e) => (e.techStack ?? []).filter(Boolean) as string[]),
-  ).size;
+  // Same normalization as /stack, so the two figures never disagree.
+  const techCount = stackCount(entries);
 
   const images = galleryImages(entries);
 
@@ -63,8 +63,9 @@ export default async function Home() {
               <h1 className="name">Tionusa</h1>
 
               <p className="headline">
-                I build web applications end to end — interfaces that feel fast,
-                backed by APIs and data layers that hold up in production.
+                Ship production apps without the usual handoff mess — I own the
+                frontend, the backend, and the deploy, so nothing gets lost in
+                translation.
               </p>
 
               <div className="actions">
@@ -101,24 +102,24 @@ export default async function Home() {
             <div className="about-body">
               <div className="prose">
                 <p>
-                  I build web applications end to end — from the interface a
-                  user touches down to the API, schema, and deployment that keep
-                  it running. Owning the whole path means fewer handoffs, fewer
-                  mismatched assumptions, and a product that behaves the same in
-                  production as it did in the mockup.
+                  Most projects lose weeks to handoffs — design to frontend,
+                  frontend to backend, backend to whoever manages the server. I
+                  close that gap by owning the whole path myself: fewer
+                  mismatched assumptions, and what you approve in the mockup is
+                  what ships to production.
                 </p>
                 <p>
-                  On the frontend that means React, Next.js, and TypeScript:
-                  reusable component systems, careful state management, and
-                  interfaces tuned for Core Web Vitals. On the backend it means
-                  Node, relational schemas, and REST or GraphQL contracts
-                  designed to stay predictable as the product grows.
+                  React, Next.js, and TypeScript on the frontend — component
+                  systems built to be reused, not rebuilt per page, tuned for
+                  Core Web Vitals. Node and relational schemas on the backend,
+                  with REST or GraphQL contracts that stay stable as the product
+                  grows.
                 </p>
                 <p>
-                  Beyond the code, I handle what it takes to ship: Docker images,
-                  CI pipelines, self-hosted infrastructure, and the monitoring
-                  that tells me when something breaks — so the work does not stop
-                  at &ldquo;it runs on my machine.&rdquo;
+                  It does not stop at code: Docker images, CI pipelines,
+                  self-hosted infrastructure, and monitoring that flags problems
+                  before your users do. &ldquo;It runs on my machine&rdquo; is
+                  not a deliverable — a running product is.
                 </p>
               </div>
             </div>
@@ -142,7 +143,7 @@ export default async function Home() {
             </div>
             <div>
               <dt className="mono">Technologies</dt>
-              <dd>{stackCount}</dd>
+              <dd>{techCount}</dd>
             </div>
           </dl>
         </div>
@@ -219,9 +220,10 @@ export default async function Home() {
             <div className="contact-info">
               <h3 className="contact-title">Let&rsquo;s build something great together.</h3>
               <p className="contact-desc">
-                Available for freelance work — modern web applications, frontend
-                architecture, design systems, and responsive UI design. Send a
-                message and I&rsquo;ll reply.
+                Open for freelance work — web applications, frontend
+                architecture, design systems, responsive UI. Tell me what
+                you&rsquo;re building and I&rsquo;ll tell you how fast I can
+                ship it.
               </p>
 
               <div className="contact-actions">

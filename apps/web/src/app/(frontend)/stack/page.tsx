@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getProfile } from "@/lib/payload";
+import { getProfile, getPublishedEntries } from "@/lib/payload";
+import { stackGroups } from "@/lib/stack";
 import { SiteFooter } from "../components/SiteFooter";
 
 export const dynamic = "force-dynamic";
@@ -10,57 +11,16 @@ export const metadata: Metadata = {
   description: "The tools, languages, and platforms I build with.",
 };
 
-// ponytail: static content, no collection. Edit here when the stack changes.
-type Tool = { name: string; tag: string; note: string };
-type Group = { label: string; caption: string; items: Tool[] };
-
-const GROUPS: Group[] = [
-  {
-    label: "Frontend & UI",
-    caption: "Designing fluid, accessible, and performant web interfaces.",
-    items: [
-      { name: "Next.js", tag: "Framework", note: "App Router, Server Components, and SSR for fast, SEO-optimized web apps." },
-      { name: "React", tag: "Library", note: "Modular component architecture, custom hooks, and predictable UI state." },
-      { name: "TypeScript", tag: "Language", note: "Strict type-safety catching contract errors before runtime execution." },
-      { name: "Tailwind & Vanilla CSS", tag: "Styling", note: "Custom design systems, CSS variables, and fluid micro-animations." },
-      { name: "HTML5 & Accessibility", tag: "Core", note: "Semantic structure, ARIA standards, and Core Web Vitals optimization." },
-    ],
-  },
-  {
-    label: "Backend & Data",
-    caption: "Secure API architectures and dependable database storage.",
-    items: [
-      { name: "Node.js & Express", tag: "Runtime", note: "Scalable asynchronous RESTful services and API micro-architectures." },
-      { name: "MySQL & SQLite", tag: "Database", note: "Structured relational databases, query optimization, and schema migrations." },
-      { name: "Payload CMS", tag: "CMS", note: "Code-first headless CMS with fully typed data access layers." },
-      { name: "REST & GraphQL", tag: "API", note: "Predictable API contracts for seamless client-server communication." },
-    ],
-  },
-  {
-    label: "DevOps & Cloud",
-    caption: "Continuous integration, containerization, and hosting reliability.",
-    items: [
-      { name: "Docker", tag: "Container", note: "Isolated development environments and lightweight production containers." },
-      { name: "AWS EC2 & Linux", tag: "Cloud", note: "Self-hosted virtual servers tuned for performance and memory constraints." },
-      { name: "Cloudflare Edge", tag: "CDN / Security", note: "Zero-trust tunnels, global edge caching, and origin shield protection." },
-      { name: "Git & CI/CD", tag: "Workflow", note: "Automated test suites, branch management, and GitHub Actions deployments." },
-    ],
-  },
-  {
-    label: "Adaptability & Tools",
-    caption: "Flexible toolsets tailored to project-specific demands.",
-    items: [
-      { name: "Rapid Stack Adoption", tag: "Client-Driven", note: "Tools serve the product, not vice versa. If your project specifies Go, Python, PostgreSQL, GraphQL, or a custom stack, I learn and adopt it rapidly with production engineering standards." },
-      { name: "Figma & Design", tag: "Design", note: "Prototyping, layout wireframes, and design token extraction." },
-      { name: "Postman & Bruno", tag: "Testing", note: "API testing, endpoint validation, and automated collection suites." },
-      { name: "AI & LLM Tooling", tag: "Workflow", note: "Leveraging agentic AI tools to accelerate development and refactoring." },
-    ],
-  },
-];
-
 export default async function StackPage() {
-  const profile = await getProfile();
+  const [profile, entries] = await Promise.all([
+    getProfile(),
+    getPublishedEntries(),
+  ]);
   const blogUrl = process.env.NEXT_PUBLIC_BLOG_URL;
+
+  // Derived from the portfolio, so the page can only list what shipped work
+  // actually proves. Grouping lives in lib/stack.ts.
+  const groups = stackGroups(entries);
 
   return (
     <>
@@ -74,7 +34,9 @@ export default async function StackPage() {
               The tools I build with.
             </h1>
             <p className="headline" style={{ maxWidth: "60ch" }}>
-              A comprehensive breakdown of the frameworks, languages, and cloud infrastructure behind my work. My toolset is flexible—I quickly learn and adopt whatever technology best fits the project requirements.
+              Every tool below is one I have shipped with — pulled straight from
+              the projects in my portfolio, not a wishlist. Each entry names the
+              work it came from.
             </p>
           </div>
         </header>
@@ -83,7 +45,7 @@ export default async function StackPage() {
         <div>
         <section className="section" aria-label="Tech stack" style={{ paddingBottom: 0 }}>
           <div className="wrap">
-            {GROUPS.map((group) => (
+            {groups.map((group) => (
               <div className="instruments-group" key={group.label}>
                 <div className="instruments-grid">
                   <div>
@@ -104,9 +66,21 @@ export default async function StackPage() {
                       <div className="instrument" key={item.name}>
                         <div className="instrument-name">
                           <h3>{item.name}</h3>
-                          <span className="instrument-tag">{item.tag}</span>
+                          {/* Badge only for repeat use — when 7 of 10 tools sit
+                              at one project, "1 PROJECT" on every card is noise
+                              that buries the ones that earned a number. */}
+                          {item.projects.length > 1 ? (
+                            <span className="instrument-tag">
+                              {item.projects.length} projects
+                            </span>
+                          ) : null}
                         </div>
-                        <p>{item.note}</p>
+                        <p>
+                          {item.projects.slice(0, 3).join(" · ")}
+                          {item.projects.length > 3
+                            ? ` +${item.projects.length - 3} more`
+                            : ""}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -120,10 +94,22 @@ export default async function StackPage() {
         <section className="section" aria-label="Client Adaptability">
           <div className="wrap">
             <div className="panel adaptability-panel">
-              <p className="mono adaptability-tag">ADAPTABILITY GUARANTEE // CLIENT FIRST</p>
-              <h2 className="adaptability-title">Need a specific tech stack for your project?</h2>
+              <p className="mono adaptability-tag">ADAPTABILITY // EVIDENCE, NOT CLAIMS</p>
+              <h2 className="adaptability-title">Working in a stack that is not on this list?</h2>
+              {/* Names languages instead of counting them: a count goes stale
+                  the moment a new one ships, and this page is derived
+                  everywhere else. */}
               <p className="adaptability-desc">
-                The technologies listed above are simply my daily defaults—not my boundaries. I evaluate software tools based on fundamental engineering principles, allowing me to master new languages, frameworks, or databases in days. If your project demands a different architecture, I adopt it seamlessly without compromising code quality or delivery speed.
+                That list is a record, not a boundary. It already runs from
+                TypeScript and Python to PHP, Dart, and C++, across web apps,
+                mobile, browser extensions, embedded IoT, and data pipelines —
+                because I pick what the problem needs, not what I am
+                comfortable with. A new framework, an unfamiliar database, or
+                someone else&rsquo;s legacy codebase is a ramp-up, not a risk:
+                the fundamentals carry over, and an AI-assisted workflow keeps
+                the ramp short. The architecture calls, the review, and the
+                production hardening stay mine — so if you are already
+                committed to a stack, name it and I will build in it.
               </p>
             </div>
           </div>

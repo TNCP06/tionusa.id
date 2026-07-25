@@ -11,7 +11,8 @@
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
     "seed": "node --env-file=.env --import tsx scripts/seed.ts",
-    "check-ingest": "node --env-file=.env --import tsx scripts/check-ingest.ts"
+    "check-ingest": "node --env-file=.env --import tsx scripts/check-ingest.ts",
+    "check-stack": "node --import tsx scripts/check-stack.ts"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "^3.85.2",
