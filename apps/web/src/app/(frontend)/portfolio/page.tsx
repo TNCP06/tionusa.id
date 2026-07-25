@@ -31,7 +31,10 @@ export default async function PortfolioPage() {
           </p>
           <h1 className="name subpage-title">Selected Work</h1>
           <p className="headline" style={{ maxWidth: "60ch" }}>
-            Web applications, interactive interfaces, and fullstack systems I&rsquo;ve designed and shipped. Filter by category, or open any entry for the full breakdown.
+            Web applications, interactive interfaces, and fullstack systems I&rsquo;ve designed and shipped. Filter by category, open any entry, or{" "}
+            <Link href="/gallery" style={{ textDecoration: "underline", color: "var(--ink)" }}>
+              explore the Visual Archive →
+            </Link>
           </p>
         </div>
       </header>

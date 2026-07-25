@@ -12,6 +12,37 @@ interface ProjectLedgerProps {
   showAllLink?: boolean;
 }
 
+function getPageNumbers(currentPage: number, totalPages: number): (number | "...")[] {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const pages: (number | "...")[] = [1];
+
+  if (currentPage > 3) {
+    pages.push("...");
+  }
+
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+
+  for (let i = start; i <= end; i++) {
+    if (!pages.includes(i)) {
+      pages.push(i);
+    }
+  }
+
+  if (currentPage < totalPages - 2) {
+    pages.push("...");
+  }
+
+  if (!pages.includes(totalPages)) {
+    pages.push(totalPages);
+  }
+
+  return pages;
+}
+
 export function ProjectLedger({
   entries,
   limit,
@@ -44,6 +75,8 @@ export function ProjectLedger({
   const visibleEntries = showAllLink
     ? filteredEntries.slice(0, limit ?? 6)
     : filteredEntries.slice(pageOffset, pageOffset + itemsPerPage);
+
+  const pageNumbers = getPageNumbers(currentPage, totalPages);
 
   return (
     <div className="project-ledger-container">
@@ -98,21 +131,40 @@ export function ProjectLedger({
           >
             ← Prev
           </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              className={`btn-show-more${currentPage === page ? " filter-tab--active" : ""}`}
-              onClick={() => setCurrentPage(page)}
-              type="button"
-              style={{
-                minWidth: "3rem",
-                background: currentPage === page ? "var(--ink)" : "transparent",
-                color: currentPage === page ? "var(--paper)" : "var(--ink)",
-              }}
-            >
-              {String(page).padStart(2, "0")}
-            </button>
-          ))}
+
+          {pageNumbers.map((page, i) => {
+            if (page === "...") {
+              return (
+                <span
+                  key={`ellipsis-${i}`}
+                  className="mono"
+                  style={{
+                    padding: "0 0.4rem",
+                    color: "var(--ink-muted)",
+                    userSelect: "none",
+                  }}
+                >
+                  ...
+                </span>
+              );
+            }
+            return (
+              <button
+                key={page}
+                className={`btn-show-more${currentPage === page ? " filter-tab--active" : ""}`}
+                onClick={() => setCurrentPage(page)}
+                type="button"
+                style={{
+                  minWidth: "2.75rem",
+                  background: currentPage === page ? "var(--ink)" : "transparent",
+                  color: currentPage === page ? "var(--paper)" : "var(--ink)",
+                }}
+              >
+                {String(page).padStart(2, "0")}
+              </button>
+            );
+          })}
+
           <button
             className="btn-show-more"
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
