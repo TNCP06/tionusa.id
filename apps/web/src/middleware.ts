@@ -6,11 +6,19 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(req: NextRequest) {
   const host = req.headers.get("host") ?? "";
   const isBlog = host.startsWith("blog.");
+  const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
   const { pathname } = req.nextUrl;
 
-  // /_blog/* is an internal path — only reachable via the blog-host rewrite.
-  // Block direct access on the main host to avoid duplicate content.
-  if (!isBlog && pathname.startsWith("/_blog")) {
+  // Allow localhost preview via /blog or /_blog
+  if (isLocal && (pathname === "/blog" || pathname.startsWith("/blog/"))) {
+    const url = req.nextUrl.clone();
+    const blogPath = pathname.replace(/^\/blog/, "") || "/";
+    url.pathname = `/_blog${blogPath === "/" ? "" : blogPath}`;
+    return trackVisit(req, NextResponse.rewrite(url));
+  }
+
+  // /_blog/* is an internal path — block direct access in production on main host
+  if (!isBlog && !isLocal && pathname.startsWith("/_blog")) {
     return new NextResponse(null, { status: 404 });
   }
 

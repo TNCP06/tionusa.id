@@ -42,137 +42,95 @@ export function ContactForm() {
     }
   };
 
-  return (
-    <div style={{ width: "100%" }}>
-      {status === "success" ? (
-        <div style={{ padding: "1.5rem 1rem", border: "1px dashed var(--line-strong)", borderRadius: "8px", textAlign: "center" }}>
-          <div
-            className="mono"
-            style={{
-              color: "var(--blue)",
-              fontWeight: 700,
-              fontSize: "0.8rem",
-              marginBottom: "0.5rem",
-            }}
-          >
-            [ ACKNOWLEDGED ]
-          </div>
-          <h4 className="name" style={{ fontSize: "1.1rem", margin: "0 0 0.5rem" }}>
-            Message Sent Successfully
-          </h4>
-          <p style={{ fontSize: "0.88rem", color: "var(--ink-muted)", margin: 0, lineHeight: "1.5" }}>
-            Thank you. Your request was logged, and I will get back to you shortly.
-          </p>
+  if (status === "success") {
+    return (
+      <div className="form-success">
+        <div className="mono" style={{ color: "var(--gold)", letterSpacing: "0.16em" }}>
+          [ Sent ]
         </div>
-      ) : (
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {/* Honeypot: off-screen, not tabbable, hidden from screen readers. */}
-          <input
-            type="text"
-            name="website"
-            tabIndex={-1}
-            autoComplete="off"
-            aria-hidden="true"
-            value={formData.website}
-            onChange={handleChange}
-            style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
-          />
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            <label htmlFor="name" className="mono" style={{ fontSize: "0.7rem", color: "var(--slate)" }}>
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              required
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="John Doe"
-              disabled={status === "sending"}
-              style={{
-                background: "var(--paper-input)",
-                border: "2px solid var(--line)",
-                borderRadius: "6px",
-                padding: "0.65rem 0.85rem",
-                color: "var(--ink)",
-                fontSize: "0.88rem",
-                width: "100%",
-              }}
-            />
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            <label htmlFor="email" className="mono" style={{ fontSize: "0.7rem", color: "var(--slate)" }}>
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="john@example.com"
-              disabled={status === "sending"}
-              style={{
-                background: "var(--paper-input)",
-                border: "2px solid var(--line)",
-                borderRadius: "6px",
-                padding: "0.65rem 0.85rem",
-                color: "var(--ink)",
-                fontSize: "0.88rem",
-                width: "100%",
-              }}
-            />
-          </div>
+        <h4>Message sent.</h4>
+        <p style={{ color: "var(--ink-muted)", margin: 0 }}>
+          Thank you — I received your message and will respond shortly.
+        </p>
+      </div>
+    );
+  }
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            <label htmlFor="message" className="mono" style={{ fontSize: "0.7rem", color: "var(--slate)" }}>
-              Message
-            </label>
-            <textarea
-              id="message"
-              name="message"
-              required
-              value={formData.message}
-              onChange={handleChange}
-              placeholder="How can I help you?..."
-              disabled={status === "sending"}
-              rows={4}
-              style={{
-                background: "var(--paper-input)",
-                border: "2px solid var(--line)",
-                borderRadius: "6px",
-                padding: "0.65rem 0.85rem",
-                color: "var(--ink)",
-                fontSize: "0.88rem",
-                resize: "vertical",
-                width: "100%",
-              }}
-            />
-          </div>
+  return (
+    <form
+      onSubmit={handleSubmit}
+      style={{ display: "flex", flexDirection: "column", gap: "1.25rem", width: "100%" }}
+    >
+      <p className="mono" style={{ color: "var(--gold)" }}>
+        ● Send me a message
+      </p>
 
-          {status === "error" && (
-            <p className="mono" style={{ color: "#f7768e", fontSize: "0.7rem", margin: 0 }}>
-              Error: All fields are required.
-            </p>
-          )}
+      {/* Honeypot: off-screen, not tabbable, hidden from screen readers. */}
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={formData.website}
+        onChange={handleChange}
+        style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
+      />
 
-          <button
-            className="btn btn-primary"
-            type="submit"
-            disabled={status === "sending"}
-            style={{
-              alignSelf: "flex-start",
-              padding: "0.75rem 1.35rem",
-              fontSize: "0.8rem",
-              marginTop: "0.25rem",
-            }}
-          >
-            {status === "sending" ? "Sending..." : "Send Message"}
-          </button>
-        </form>
+      <div className="field">
+        <label htmlFor="name">Name</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          required
+          value={formData.name}
+          onChange={handleChange}
+          placeholder="Full name"
+          disabled={status === "sending"}
+        />
+      </div>
+
+      <div className="field">
+        <label htmlFor="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="name@domain.com"
+          disabled={status === "sending"}
+        />
+      </div>
+
+      <div className="field">
+        <label htmlFor="message">Message</label>
+        <textarea
+          id="message"
+          name="message"
+          required
+          value={formData.message}
+          onChange={handleChange}
+          placeholder="How can I help you?"
+          disabled={status === "sending"}
+          rows={4}
+        />
+      </div>
+
+      {status === "error" && (
+        <p className="form-error">Error — all fields are required.</p>
       )}
-    </div>
+
+      <button
+        className="btn btn-primary"
+        type="submit"
+        disabled={status === "sending"}
+        style={{ alignSelf: "flex-start" }}
+      >
+        {status === "sending" ? "Sending…" : "Send message →"}
+      </button>
+    </form>
   );
 }

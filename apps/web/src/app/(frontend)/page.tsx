@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { RichText } from "@payloadcms/richtext-lexical/react";
 import { getProfile, getPublishedEntries } from "@/lib/payload";
-import { ProjectLedger } from "./components/ProjectLedger";
+import { EntryRow } from "./components/EntryRow";
 import { ContactForm } from "./components/ContactForm";
+import { SiteFooter } from "./components/SiteFooter";
+import { GalleryGrid } from "./components/GalleryGrid";
 
 // Rendered on demand (DB is a runtime volume); data is cached via tags.
 export const dynamic = "force-dynamic";
@@ -11,9 +14,16 @@ export async function generateMetadata(): Promise<Metadata> {
   const profile = await getProfile();
   return {
     title: profile.fullName || "Tionusa Catur Pamungkas",
-    description: profile.headline || "Fullstack developer — systems, data, and cloud.",
+    description:
+      profile.headline ||
+      "Fullstack Developer — React, Next.js, Node, and the data layers behind them.",
   };
 }
+
+const mediaUrl = (v: unknown): string | null =>
+  typeof v === "object" && v !== null && "url" in v
+    ? ((v as { url?: string }).url ?? null)
+    : null;
 
 export default async function Home() {
   const [profile, entries] = await Promise.all([
@@ -21,13 +31,33 @@ export default async function Home() {
     getPublishedEntries(),
   ]);
 
-  const blogUrl = process.env.NEXT_PUBLIC_BLOG_URL;
-  const year = new Date().getFullYear();
-  const cvUrl =
-    typeof profile.cvFile === "object" && profile.cvFile ? profile.cvFile.url : null;
+  const blogUrl = process.env.NEXT_PUBLIC_BLOG_URL || "/blog";
+  const cvUrl = mediaUrl(profile.cvFile);
+  const photoUrl = mediaUrl(profile.photo) || "/profile.jpg";
+
+  // Homepage teaser: featured first, capped at 4.
+  const homeEntries = [...entries]
+    .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+    .slice(0, 4);
+
+  const stackCount = new Set(
+    entries.flatMap((e) => (e.techStack ?? []).filter(Boolean) as string[]),
+  ).size;
+
+  const galleryImages = entries.flatMap((e) =>
+    (e.gallery ?? []).map((g) => ({
+      url: mediaUrl(g),
+      alt: e.title,
+      caption: e.title,
+    })),
+  ).filter(
+    (g): g is { url: string; alt: string; caption: string } => g.url !== null,
+  );
 
   return (
     <>
+      <div className="bands">
+      {/* ── Hero: oversized display type, full margin-to-margin ── */}
       <header className="hero">
         <div className="wrap">
           <div className="hero-grid">
@@ -38,133 +68,212 @@ export default async function Home() {
                   aria-hidden="true"
                 />
                 <span className="mono">
-                  {profile.headline ? "Fullstack Developer" : "Portfolio"}
-                  {profile.availableForWork ? " · Available for work" : ""}
+                  Fullstack Developer
+                  {profile.availableForWork ? " · Open to freelance" : " · Currently booked"}
                 </span>
               </p>
-              <h1 className="name">{profile.fullName || "Tionusa Catur Pamungkas"}</h1>
-              {profile.headline ? <p className="headline">{profile.headline}</p> : null}
+              <h1 className="name">Tionusa</h1>
 
-              <div className="hero-meta">
-                {profile.location ? <span className="mono">{profile.location}</span> : null}
-                <span className="mono">ID · EN</span>
-              </div>
+              <p className="headline">
+                I build web applications end to end — interfaces that feel fast,
+                backed by APIs and data layers that hold up in production.
+              </p>
 
               <div className="actions">
-                <a className="btn btn-primary" href="#work">
-                  View work
-                </a>
+                <Link className="btn btn-primary" href="/#contact">
+                  Hire me
+                </Link>
+                <Link className="btn" href="/portfolio">
+                  View portfolio
+                </Link>
                 {cvUrl ? (
-                  <a className="btn" href={cvUrl}>
+                  <a className="btn" href={cvUrl} target="_blank" rel="noreferrer">
                     Download CV
                   </a>
                 ) : null}
-                {blogUrl ? (
-                  <a className="btn" href={blogUrl}>
-                    Blog
-                  </a>
-                ) : null}
-                <a className="btn" href="#contact">
-                  Contact
-                </a>
-              </div>
-            </div>
-
-            <div className="hero-terminal" aria-hidden="true">
-              <div className="terminal-header">
-                <div className="terminal-buttons">
-                  <span className="terminal-btn close" />
-                  <span className="terminal-btn minimize" />
-                  <span className="terminal-btn expand" />
-                </div>
-                <span className="terminal-title">guest@tncp: ~</span>
-              </div>
-              <div className="terminal-body">
-                <div className="terminal-line"><span className="terminal-prompt">$</span> whoami</div>
-                <div className="terminal-output">tionusa-catur-pamungkas</div>
-                <div className="terminal-line"><span className="terminal-prompt">$</span> cat focus.json</div>
-                <div className="terminal-output JSON">{"{"}</div>
-                <div className="terminal-output JSON indent">"role": "Fullstack Developer",</div>
-                <div className="terminal-output JSON indent">"stack": ["Node.js", "Docker", "AWS", "SQLite", "etc"],</div>
-                <div className="terminal-output JSON indent">"available": {profile.availableForWork ? "true" : "false"}</div>
-                <div className="terminal-output JSON">{"}"}</div>
-                <div className="terminal-line"><span className="terminal-prompt">$</span> ping -c 1 tncp.web.id</div>
-                <div className="terminal-output">64 bytes: icmp_seq=1 ttl=64 time=0.042 ms</div>
-                <div className="terminal-line cursor-line"><span className="terminal-prompt">$</span> <span className="terminal-cursor" /></div>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      {profile.bio ? (
-        <section className="section section--alt" id="about" aria-label="About">
-          <div className="wrap">
-            <div className="panel">
+      <section className="section band-dark" id="about" aria-label="About">
+        <div className="wrap">
+          <div className="section-head">
+            <h2>About Me</h2>
+            <span className="mono">Philosophy</span>
+          </div>
+          <div className="about-grid">
+            {photoUrl ? (
+              <figure className="about-figure" style={{ margin: 0 }}>
+                <img src={photoUrl} alt={profile.fullName || "Portrait"} loading="lazy" />
+                <figcaption>Portrait / {new Date().getFullYear()}</figcaption>
+              </figure>
+            ) : null}
+            <div className="about-body">
               <div className="prose">
-                <RichText data={profile.bio} />
+                <p>
+                  I build web applications end to end — from the interface a
+                  user touches down to the API, schema, and deployment that keep
+                  it running. Owning the whole path means fewer handoffs, fewer
+                  mismatched assumptions, and a product that behaves the same in
+                  production as it did in the mockup.
+                </p>
+                <p>
+                  On the frontend that means React, Next.js, and TypeScript:
+                  reusable component systems, careful state management, and
+                  interfaces tuned for Core Web Vitals. On the backend it means
+                  Node, relational schemas, and REST or GraphQL contracts
+                  designed to stay predictable as the product grows.
+                </p>
+                <p>
+                  Beyond the code, I handle what it takes to ship: Docker images,
+                  CI pipelines, self-hosted infrastructure, and the monitoring
+                  that tells me when something breaks — so the work does not stop
+                  at &ldquo;it runs on my machine.&rdquo;
+                </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Facts band ────────────────────────────────────────── */}
+      <section className="section" aria-label="At a glance">
+        <div className="wrap">
+          <dl className="facts">
+            {profile.location ? (
+              <div>
+                <dt className="mono">Based in</dt>
+                <dd>{profile.location}</dd>
+              </div>
+            ) : null}
+            <div>
+              <dt className="mono">Projects</dt>
+              <dd>{String(entries.length).padStart(2, "0")}</dd>
+            </div>
+            <div>
+              <dt className="mono">Technologies</dt>
+              <dd>{stackCount}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      {/* ── Curated Works ─────────────────────────────────────── */}
+      <section className="section" id="work" aria-label="Featured Projects">
+        <div className="wrap">
+          <div className="section-head">
+            <h2>
+              <Link href="/portfolio">
+                Featured Projects <span className="arrow">→</span>
+              </Link>
+            </h2>
+            <Link className="mono" href="/portfolio" style={{ textDecoration: "none" }}>
+              Projects · {String(entries.length).padStart(2, "0")}
+            </Link>
+          </div>
+
+          {/* Rows straight from the server: the teaser has no filters or paging. */}
+          <div className="ledger">
+            {homeEntries.map((e, i) => (
+              <EntryRow
+                key={e.id}
+                entry={e}
+                num={String(i + 1).padStart(2, "0")}
+              />
+            ))}
+          </div>
+
+          <div className="ledger-actions">
+            <Link className="btn btn-primary" href="/portfolio">
+              See all projects →
+            </Link>
+            <Link className="btn" href="/stack">
+              View tech stack →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Curated Gallery Showcase ────────────────────────────────── */}
+      {galleryImages.length > 0 ? (
+        <section className="section" id="gallery" aria-label="Visual Gallery">
+          <div className="wrap">
+            <div className="section-head">
+              <h2>
+                <Link href="/gallery">
+                  Visual Showcase <span className="arrow">→</span>
+                </Link>
+              </h2>
+              <span className="mono">Gallery · {String(galleryImages.length).padStart(2, "0")}</span>
+            </div>
+
+            <GalleryGrid images={galleryImages.slice(0, 6)} />
+
+            <div className="ledger-actions" style={{ marginTop: "3rem" }}>
+              <Link className="btn" href="/gallery">
+                View full visual archive →
+              </Link>
             </div>
           </div>
         </section>
       ) : null}
 
-      <section className="section" id="work" aria-label="Featured Projects">
+      {/* ── Start a Dialogue ──────────────────────────────────── */}
+      <section className="section" id="contact" aria-label="Contact">
         <div className="wrap">
           <div className="section-head">
-            <h2>Featured Projects</h2>
-            <span className="mono">{entries.length} entries</span>
-          </div>
-
-          <ProjectLedger
-            entries={entries}
-            limit={6}
-            showFilters={false}
-            showAllLink={true}
-          />
-        </div>
-      </section>
-
-      <section className="section section--alt" id="contact" aria-label="Contact">
-        <div className="wrap">
-          <div className="section-head">
-            <h2>Get in touch</h2>
-            <span className="mono">Ready to collaborate</span>
+            <h2>Get in Touch</h2>
+            <span className="mono">Contact</span>
           </div>
           <div className="contact-card">
-            <div className="contact-info" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <h3 className="contact-title" style={{ margin: 0 }}>Let's build something together</h3>
-              <p className="contact-desc" style={{ margin: 0, maxWidth: "100%" }}>
-                I'm always open to discussing backend architectures, systems engineering,
-                database optimization, or cloud deployments. Drop me a line!
+            <div className="contact-info">
+              <h3 className="contact-title">Let&rsquo;s build something great together.</h3>
+              <p className="contact-desc">
+                Available for freelance work — modern web applications, frontend
+                architecture, design systems, and responsive UI design. Send a
+                message and I&rsquo;ll reply.
               </p>
-              
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center", marginTop: "0.5rem" }}>
+
+              <div className="contact-actions">
                 {profile.email ? (
-                  <a className="contact-email-btn" href={`mailto:${profile.email}`} style={{ padding: "0.75rem 1.25rem", fontSize: "0.85rem", gap: "0.5rem" }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                    {profile.email}
+                  <a className="contact-email-btn" href={`mailto:${profile.email}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+                    Email me
                   </a>
                 ) : null}
-
                 {(profile.socials ?? []).map((s, i) => {
-                  const kind = (s as any).kind;
-                  let icon = (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                  );
-
-                  if (kind === "github") {
+                  let icon = null;
+                  if (s.kind === "github") {
                     icon = (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: "0.45rem" }}>
+                        <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.79-.25.79-.55 0-.27-.01-1.16-.02-2.11-3.2.7-3.87-1.36-3.87-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.59.24 2.76.12 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.7 5.38-5.27 5.67.42.36.78 1.08.78 2.17 0 1.57-.01 2.83-.01 3.22 0 .3.21.66.8.55A10.99 10.99 0 0 0 23.5 12c0-6.35-5.15-11.5-11.5-11.5Z" />
+                      </svg>
                     );
-                  } else if (kind === "linkedin") {
+                  } else if (s.kind === "linkedin") {
                     icon = (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: "0.45rem" }}>
+                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                      </svg>
+                    );
+                  } else {
+                    icon = (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "0.45rem" }}>
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                      </svg>
                     );
                   }
-
                   return (
-                    <a key={i} href={s.url} className="btn" target="_blank" rel="noreferrer" style={{ padding: "0.75rem 1.25rem", fontSize: "0.85rem", gap: "0.5rem" }}>
+                    <a
+                      key={i}
+                      className="btn"
+                      href={s.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ display: "inline-flex", alignItems: "center" }}
+                    >
                       {icon}
                       {s.label}
                     </a>
@@ -173,22 +282,13 @@ export default async function Home() {
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <ContactForm />
-            </div>
+            <ContactForm />
           </div>
         </div>
       </section>
+      </div>
 
-      <footer className="site-footer">
-        <div className="wrap">
-          <p className="foot-meta">
-            {profile.availableForWork ? "Available for work · " : ""}©{" "}
-            {year} {profile.fullName || "Tionusa Catur Pamungkas"} · Built with
-            Next.js + Payload
-          </p>
-        </div>
-      </footer>
+      <SiteFooter profile={profile} blogUrl={blogUrl} />
     </>
   );
 }

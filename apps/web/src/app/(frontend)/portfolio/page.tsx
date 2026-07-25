@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getProfile, getPublishedEntries } from "@/lib/payload";
 import { ProjectLedger } from "../components/ProjectLedger";
+import { SiteFooter } from "../components/SiteFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const profile = await getProfile();
   return {
     title: `Portfolio · ${profile.fullName || "Tionusa Catur Pamungkas"}`,
-    description: "Full archive of systems, backend, and database engineering entries.",
+    description: "Selected web applications, frontend design systems, and fullstack projects.",
   };
 }
 
@@ -18,24 +19,31 @@ export default async function PortfolioPage() {
     getPublishedEntries(),
   ]);
 
+  const blogUrl = process.env.NEXT_PUBLIC_BLOG_URL;
+
   return (
-    <main className="wrap" style={{ paddingBlock: "2.5rem 3.5rem" }}>
-      <header
-        style={{
-          marginBottom: "1.75rem",
-          borderBottom: "2px solid var(--line)",
-          paddingBottom: "0.25rem",
-        }}
-      >
-        <h1 className="name" style={{ fontSize: "clamp(2rem, 5vw, 3rem)" }}>
-          Projects Archive
-        </h1>
-        <p className="mono" style={{ marginTop: "0.4rem", color: "var(--ink-muted)" }}>
-          Explore all backend systems, cloud infrastructure, and database engineering entries.
-        </p>
+    <>
+      <div className="bands">
+      <header className="hero" aria-label="Portfolio intro">
+        <div className="wrap">
+          <p className="mono" style={{ marginBottom: "1.5rem" }}>
+            Portfolio · All Projects
+          </p>
+          <h1 className="name">Selected Work</h1>
+          <p className="headline" style={{ maxWidth: "60ch" }}>
+            Web applications, interactive interfaces, and fullstack systems I&rsquo;ve designed and shipped. Filter by category, or open any entry for the full breakdown.
+          </p>
+        </div>
       </header>
 
-      <ProjectLedger entries={entries} showFilters={true} showAllLink={false} />
-    </main>
+      <section className="section" style={{ paddingTop: 0 }} aria-label="Projects">
+        <div className="wrap">
+          <ProjectLedger entries={entries} showFilters={true} showAllLink={false} />
+        </div>
+      </section>
+      </div>
+
+      <SiteFooter profile={profile} blogUrl={blogUrl} />
+    </>
   );
 }
