@@ -40,14 +40,24 @@ async function exists(p: string): Promise<boolean> {
   }
 }
 
-/** Append -2, -3 … until the target name is free on disk. */
-async function freeName(candidate: string): Promise<string> {
+/**
+ * Append -2, -3 … until the target name is free on disk.
+ *
+ * `current` is excluded from the collision check: a case-insensitive
+ * filesystem (Windows, macOS) reports "SMAN2-Profil1.png" as already occupying
+ * "sman2-profil1.png", which would suffix every case-only rename with -2.
+ */
+async function freeName(candidate: string, current: string): Promise<string> {
   const dot = candidate.lastIndexOf(".");
   const stem = dot > 0 ? candidate.slice(0, dot) : candidate;
   const ext = dot > 0 ? candidate.slice(dot) : "";
+  const taken = async (name: string) =>
+    name.toLowerCase() !== current.toLowerCase() &&
+    (await exists(path.join(MEDIA_DIR, name)));
+
   let name = candidate;
   let n = 2;
-  while (await exists(path.join(MEDIA_DIR, name))) {
+  while (await taken(name)) {
     name = `${stem}-${n}${ext}`;
     n += 1;
   }
@@ -67,7 +77,7 @@ async function main() {
     const slugified = slugifyFilename(current);
     if (slugified === current) continue;
 
-    const target = APPLY ? await freeName(slugified) : slugified;
+    const target = APPLY ? await freeName(slugified, current) : slugified;
     planned += 1;
     console.log(`${current}\n  -> ${target}`);
 
