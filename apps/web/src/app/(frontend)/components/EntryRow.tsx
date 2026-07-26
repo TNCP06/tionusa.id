@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ENTRY_TYPE_LABEL } from "@/lib/format";
+import { ENTRY_TYPE_LABEL, mediaAlt, mediaSrcSet, mediaUrl } from "@/lib/format";
 import type { PortfolioEntry } from "@/payload-types";
 
 interface EntryRowProps {
@@ -11,10 +11,7 @@ interface EntryRowProps {
 /** One ledger row. Server-renderable so pages without filters ship no JS for it. */
 export function EntryRow({ entry: e, num }: EntryRowProps) {
   const stack = (e.techStack ?? []).filter(Boolean) as string[];
-  const coverUrl =
-    typeof e.coverImage === "object" && e.coverImage && "url" in e.coverImage
-      ? (e.coverImage as { url: string }).url
-      : null;
+  const coverUrl = mediaUrl(e.coverImage);
 
   return (
     <article className="entry">
@@ -28,7 +25,9 @@ export function EntryRow({ entry: e, num }: EntryRowProps) {
           <img
             className="entry-thumbnail"
             src={coverUrl}
-            alt={e.title}
+            srcSet={mediaSrcSet(e.coverImage)}
+            sizes="(max-width: 900px) 100vw, 480px"
+            alt={mediaAlt(e.coverImage) || `Cover image for ${e.title}`}
             loading="lazy"
           />
         ) : (

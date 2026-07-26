@@ -5,6 +5,7 @@ import Link from "next/link";
 
 interface GalleryImage {
   url: string;
+  srcSet?: string;
   alt?: string;
   caption?: string;
   slug?: string;
@@ -65,7 +66,13 @@ export function GalleryGrid({ images, allImages, className }: GalleryGridProps) 
             type="button"
             aria-label={`View ${img.alt || "image"}`}
           >
-            <img src={img.url} alt={img.alt || ""} loading="lazy" />
+            <img
+              src={img.url}
+              srcSet={img.srcSet}
+              sizes="(max-width: 700px) 100vw, 480px"
+              alt={img.alt || ""}
+              loading="lazy"
+            />
             {img.caption ? (
               <span className="gallery-item-caption mono">{img.caption}</span>
             ) : null}

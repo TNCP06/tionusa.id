@@ -2,6 +2,7 @@ import type { PortfolioEntry } from "../payload-types";
 
 export type GalleryImage = {
   url: string;
+  srcSet?: string;
   alt: string;
   caption: string;
   slug?: string;
@@ -11,6 +12,28 @@ export const mediaUrl = (v: unknown): string | null =>
   typeof v === "object" && v !== null && "url" in v
     ? ((v as { url?: string }).url ?? null)
     : null;
+
+/** Owner-written alt text from the Media collection, if it was filled in. */
+export const mediaAlt = (v: unknown): string | null =>
+  typeof v === "object" && v !== null && "alt" in v
+    ? ((v as { alt?: string | null }).alt || null)
+    : null;
+
+type ImageSize = { url?: string | null; width?: number | null };
+
+/**
+ * `srcset` from the WebP derivatives Payload generates (see collections/Media).
+ * Returns undefined for uploads that predate those sizes, so the plain `src`
+ * stays the only source.
+ */
+export function mediaSrcSet(v: unknown): string | undefined {
+  if (typeof v !== "object" || v === null || !("sizes" in v)) return undefined;
+  const sizes = (v as { sizes?: Record<string, ImageSize | null> }).sizes ?? {};
+  const set = Object.values(sizes)
+    .filter((s): s is ImageSize => Boolean(s?.url && s?.width))
+    .map((s) => `${s.url} ${s.width}w`);
+  return set.length ? set.join(", ") : undefined;
+}
 
 /**
  * Flat, owner-controlled image list for the Gallery page and the homepage
@@ -29,7 +52,10 @@ export function galleryImages(entries: PortfolioEntry[]): GalleryImage[] {
       if (url) {
         result.push({
           url,
-          alt: e.title,
+          srcSet: mediaSrcSet(g),
+          // The caption already names the project, so repeating the title in
+          // `alt` tells a screen reader (or an image crawler) nothing new.
+          alt: mediaAlt(g) || `Screenshot from ${e.title}`,
           caption: e.title,
           slug: e.slug || undefined,
         });

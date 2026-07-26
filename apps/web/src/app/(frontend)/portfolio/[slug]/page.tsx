@@ -3,7 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RichText } from "@payloadcms/richtext-lexical/react";
 import { getEntryBySlug, getProfile } from "@/lib/payload";
-import { ENTRY_TYPE_LABEL, metaLabels, periodOf } from "@/lib/format";
+import {
+  ENTRY_TYPE_LABEL,
+  mediaAlt,
+  mediaSrcSet,
+  mediaUrl,
+  metaLabels,
+  periodOf,
+} from "@/lib/format";
 import { SITE_DESCRIPTION, pageMeta } from "@/lib/seo";
 import { breadcrumbSchema, jsonLdScript } from "@/lib/schema";
 import { SiteFooter } from "../../components/SiteFooter";
@@ -28,11 +35,6 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     ...(entry.updatedAt ? { modifiedTime: entry.updatedAt } : {}),
   });
 }
-
-const mediaUrl = (v: unknown): string | null =>
-  typeof v === "object" && v !== null && "url" in v
-    ? ((v as { url?: string }).url ?? null)
-    : null;
 
 export default async function PortfolioDetail({ params }: Params) {
   const { slug } = await params;
@@ -87,7 +89,14 @@ export default async function PortfolioDetail({ params }: Params) {
         </div>
 
         {cover ? (
-          <img className="cover" src={cover} alt={entry.title} loading="lazy" />
+          <img
+            className="cover"
+            src={cover}
+            srcSet={mediaSrcSet(entry.coverImage)}
+            sizes="(max-width: 1100px) 100vw, 1100px"
+            alt={mediaAlt(entry.coverImage) || `Cover image for ${entry.title}`}
+            loading="lazy"
+          />
         ) : null}
 
         {entry.body ? (
@@ -100,10 +109,13 @@ export default async function PortfolioDetail({ params }: Params) {
           <div style={{ marginTop: "3rem" }}>
             <span className="mono">Gallery</span>
             <GalleryGrid
-              images={(entry.gallery ?? []).map((g) => ({
-                url: mediaUrl(g) || "",
-                alt: entry.title,
-              })).filter((img) => img.url !== "")}
+              images={(entry.gallery ?? [])
+                .map((g) => ({
+                  url: mediaUrl(g) || "",
+                  srcSet: mediaSrcSet(g),
+                  alt: mediaAlt(g) || `Screenshot from ${entry.title}`,
+                }))
+                .filter((img) => img.url !== "")}
             />
           </div>
         ) : null}

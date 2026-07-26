@@ -12,7 +12,9 @@
     "generate:importmap": "payload generate:importmap",
     "seed": "node --env-file=.env --import tsx scripts/seed.ts",
     "check-ingest": "node --env-file=.env --import tsx scripts/check-ingest.ts",
-    "check-stack": "node --import tsx scripts/check-stack.ts"
+    "check-stack": "node --import tsx scripts/check-stack.ts",
+    "rename-media": "node --env-file=.env --import tsx scripts/rename-media.ts",
+    "rename-slugs": "node --env-file=.env --import tsx scripts/rename-slugs.ts"
   },
   "dependencies": {
     "@payloadcms/db-sqlite": "^3.85.2",
