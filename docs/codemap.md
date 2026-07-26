@@ -1,6 +1,6 @@
 # Code map
 
-> Last verified against code: 2026-07-26 (SEO pass: metadata helper, JSON-LD, crawlable filters, media WebP sizes)
+> Last verified against code: 2026-07-26 (SEO pass: metadata helper, JSON-LD, crawlable filters, media WebP sizes, blocking metadata + favicon for Googlebot)
 > Purpose: token-cheap entry point. For each area, read only the files listed.
 
 | Area | Read |
@@ -30,7 +30,8 @@
 | Fonts + root metadata | `apps/web/src/app/(frontend)/layout.tsx` |
 | SEO — metadata helper + site constants | `apps/web/src/lib/seo.ts` |
 | SEO — JSON-LD builders (Person / BlogPosting / BreadcrumbList) | `apps/web/src/lib/schema.ts` |
-| SEO | `apps/web/src/app/(frontend)/sitemap.ts`, `apps/web/src/app/robots.ts`, `(frontend)/icon.svg` |
+| SEO | `apps/web/src/app/(frontend)/sitemap.ts`, `apps/web/src/app/robots.ts`, `apps/web/public/icon.svg`, `apps/web/public/favicon.ico` (Google's `/favicon.ico` fallback) |
+| SEO — blocking metadata for Googlebot | `apps/web/next.config.ts` (`htmlLimitedBots`; the homepage suspends, so metadata would otherwise stream past `</head>`) |
 | Admin panel (route group) | `apps/web/src/app/(payload)/admin/**`, `(payload)/layout.tsx` |
 | REST + GraphQL API | `apps/web/src/app/(payload)/api/**` |
 | Healthcheck | `apps/web/src/app/(payload)/api/health/route.ts` (static, shadows `/api/[...slug]`) |
