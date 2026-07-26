@@ -5,6 +5,7 @@ import { RichText } from "@payloadcms/richtext-lexical/react";
 import { getEntryBySlug, getProfile } from "@/lib/payload";
 import { ENTRY_TYPE_LABEL, metaLabels, periodOf } from "@/lib/format";
 import { SITE_DESCRIPTION, pageMeta } from "@/lib/seo";
+import { breadcrumbSchema, jsonLdScript } from "@/lib/schema";
 import { SiteFooter } from "../../components/SiteFooter";
 import { GalleryGrid } from "../../components/GalleryGrid";
 
@@ -121,6 +122,19 @@ export default async function PortfolioDetail({ params }: Params) {
       </div>
 
       <SiteFooter profile={profile} blogUrl={blogUrl} />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(
+            breadcrumbSchema([
+              { name: "Home", path: "/" },
+              { name: "Portfolio", path: "/portfolio" },
+              { name: entry.title, path: `/portfolio/${slug}` },
+            ]),
+          ),
+        }}
+      />
     </>
   );
 }

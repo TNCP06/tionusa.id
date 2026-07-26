@@ -6,6 +6,7 @@ import { ArticleCard } from "../../components/ArticleCard";
 import { ShareBar } from "../../components/ShareBar";
 import { BLOG_DESCRIPTION, BLOG_NAME, BLOG_URL, pageMeta } from "@/lib/seo";
 import { formatSlug } from "@/fields/slug";
+import { blogPostingSchema, jsonLdScript } from "@/lib/schema";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -59,19 +60,10 @@ export default async function ArticlePage({ params }: Params) {
       })
     : "";
 
-  const ld = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: article.title,
-    ...(cover?.url ? { image: new URL(cover.url, BLOG_URL).toString() } : {}),
-    datePublished: article.publishedAt || undefined,
-    dateModified: article.updatedAt,
+  const ld = blogPostingSchema(article, {
+    coverUrl: cover?.url,
     articleSection: CAT[article.category] ?? article.category,
-    ...(article.readingTime ? { timeRequired: `PT${article.readingTime}M` } : {}),
-    ...(tags.length ? { keywords: tags.join(", ") } : {}),
-    author: { "@type": "Organization", name: "KANAL" },
-    publisher: { "@type": "Organization", name: "KANAL" },
-  };
+  });
 
   return (
     <main className="k-wrap k-article">
@@ -146,7 +138,7 @@ export default async function ArticlePage({ params }: Params) {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }}
       />
     </main>
   );

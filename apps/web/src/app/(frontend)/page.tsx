@@ -9,6 +9,7 @@ import { GalleryGrid } from "./components/GalleryGrid";
 import { galleryImages, mediaUrl } from "@/lib/format";
 import { stackCount } from "@/lib/stack";
 import { SITE_DESCRIPTION, SITE_TITLE, pageMeta } from "@/lib/seo";
+import { jsonLdScript, personSchema } from "@/lib/schema";
 
 // Rendered on demand (DB is a runtime volume); data is cached via tags.
 export const dynamic = "force-dynamic";
@@ -283,6 +284,11 @@ export default async function Home() {
       </div>
 
       <SiteFooter profile={profile} blogUrl={blogUrl} />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(personSchema(profile, entries)) }}
+      />
     </>
   );
 }
