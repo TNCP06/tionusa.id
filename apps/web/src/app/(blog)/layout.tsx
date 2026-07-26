@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import { BlogNav } from "./components/BlogNav";
+import { BLOG_DESCRIPTION, BLOG_NAME, BLOG_TITLE, BLOG_URL } from "@/lib/seo";
 import "./blog.css";
 
 // Set the blog theme before paint to avoid a flash of the wrong palette.
@@ -27,17 +28,18 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BLOG_URL || "https://blog.tncp.web.id",
-  ),
-  title: { default: "KANAL", template: "%s · KANAL" },
-  description: "Hiburan, tech, dan tips — dijelasin santai.",
+  metadataBase: new URL(BLOG_URL),
+  title: { default: BLOG_TITLE, template: `%s · ${BLOG_NAME}` },
+  description: BLOG_DESCRIPTION,
   icons: { icon: "/kanal-icon.svg" },
   openGraph: {
     type: "website",
-    siteName: "KANAL",
+    siteName: BLOG_NAME,
+    title: BLOG_TITLE,
+    description: BLOG_DESCRIPTION,
     images: ["/kanal-logo.png"],
   },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function BlogLayout({

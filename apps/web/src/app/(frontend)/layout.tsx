@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import { SiteNav } from "./components/SiteNav";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
 // Set theme before paint to avoid a flash of the wrong palette (defaults to the light gallery theme).
@@ -25,17 +26,22 @@ const mono = JetBrains_Mono({
   display: "swap",
 });
 
-const siteUrl = process.env.SITE_URL || "http://localhost:3000";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Tionusa Catur Pamungkas",
-    template: "%s · Tionusa Catur Pamungkas",
+    default: SITE_TITLE,
+    template: `%s · ${SITE_NAME}`,
   },
-  description:
-    "Fullstack Developer — React, Next.js, Node, and the data layers behind them.",
+  description: SITE_DESCRIPTION,
   icons: { icon: "/icon.svg" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    url: "/",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function FrontendLayout({

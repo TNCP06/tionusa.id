@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { RichText } from "@payloadcms/richtext-lexical/react";
 import { getEntryBySlug, getProfile } from "@/lib/payload";
 import { ENTRY_TYPE_LABEL, metaLabels, periodOf } from "@/lib/format";
+import { SITE_DESCRIPTION, pageMeta } from "@/lib/seo";
 import { SiteFooter } from "../../components/SiteFooter";
 import { GalleryGrid } from "../../components/GalleryGrid";
 
@@ -16,10 +17,15 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const entry = await getEntryBySlug(slug);
   if (!entry) return { title: "Not found" };
-  return {
+  const cover = mediaUrl(entry.coverImage);
+  return pageMeta({
     title: entry.title,
-    description: entry.summary || undefined,
-  };
+    description: entry.summary || SITE_DESCRIPTION,
+    path: `/portfolio/${slug}`,
+    type: "article",
+    ...(cover ? { images: [cover] } : {}),
+    ...(entry.updatedAt ? { modifiedTime: entry.updatedAt } : {}),
+  });
 }
 
 const mediaUrl = (v: unknown): string | null =>

@@ -4,13 +4,12 @@ import { RichText } from "@payloadcms/richtext-lexical/react";
 import { getArticleBySlug, getRelated } from "@/lib/blog";
 import { ArticleCard } from "../../components/ArticleCard";
 import { ShareBar } from "../../components/ShareBar";
+import { BLOG_DESCRIPTION, BLOG_NAME, BLOG_URL, pageMeta } from "@/lib/seo";
 
 type Params = { params: Promise<{ slug: string }> };
 
 // Rendered on demand (DB is a runtime volume); data is cached via tags (see lib/blog.ts).
 export const dynamic = "force-dynamic";
-
-const SITE = process.env.NEXT_PUBLIC_BLOG_URL || "https://blog.tncp.web.id";
 
 type Media = { url?: string | null; width?: number | null; height?: number | null };
 const media = (v: unknown): Media | null =>
@@ -31,19 +30,16 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   const cover = media(article.coverImage)?.url;
 
-  return {
+  return pageMeta({
     title: article.title,
-    description: article.excerpt || undefined,
-    alternates: { canonical: `/${slug}` },
-    openGraph: {
-      title: article.title,
-      description: article.excerpt || undefined,
-      type: "article",
-      publishedTime: article.publishedAt || undefined,
-      images: cover ? [cover] : [],
-    },
-    twitter: { card: "summary_large_image" },
-  };
+    description: article.excerpt || BLOG_DESCRIPTION,
+    path: `/${slug}`,
+    type: "article",
+    siteName: BLOG_NAME,
+    ...(cover ? { images: [cover] } : {}),
+    ...(article.publishedAt ? { publishedTime: article.publishedAt } : {}),
+    ...(article.updatedAt ? { modifiedTime: article.updatedAt } : {}),
+  });
 }
 
 export default async function ArticlePage({ params }: Params) {
@@ -66,7 +62,7 @@ export default async function ArticlePage({ params }: Params) {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: article.title,
-    ...(cover?.url ? { image: new URL(cover.url, SITE).toString() } : {}),
+    ...(cover?.url ? { image: new URL(cover.url, BLOG_URL).toString() } : {}),
     datePublished: article.publishedAt || undefined,
     dateModified: article.updatedAt,
     articleSection: CAT[article.category] ?? article.category,
@@ -103,7 +99,7 @@ export default async function ArticlePage({ params }: Params) {
         {article.readingTime ? `${article.readingTime} menit baca` : null}
       </p>
 
-      <ShareBar url={`${SITE}/${slug}`} title={article.title} />
+      <ShareBar url={`${BLOG_URL}/${slug}`} title={article.title} />
 
       {article.body ? (
         <div className="k-prose">

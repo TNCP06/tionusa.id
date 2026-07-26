@@ -3,13 +3,16 @@ import Link from "next/link";
 import { getProfile, getPublishedEntries } from "@/lib/payload";
 import { stackGroups } from "@/lib/stack";
 import { SiteFooter } from "../components/SiteFooter";
+import { pageMeta } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Tech Stack",
-  description: "The tools, languages, and platforms I build with.",
-};
+  description:
+    "The languages, runtimes, databases, and infrastructure I have shipped production work with — Node.js, Express, MySQL, Docker, AWS EC2, Next.js.",
+  path: "/stack",
+});
 
 export default async function StackPage() {
   const [profile, entries] = await Promise.all([

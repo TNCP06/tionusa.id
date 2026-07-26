@@ -4,13 +4,16 @@ import { getPublishedEntries, getProfile } from "@/lib/payload";
 import { galleryImages } from "@/lib/format";
 import { GalleryGrid } from "../components/GalleryGrid";
 import { SiteFooter } from "../components/SiteFooter";
+import { pageMeta } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Gallery",
-  description: "Visual showcase of projects and work.",
-};
+  description:
+    "Screens from shipped work — dashboards, admin panels, API tooling, and mobile interfaces.",
+  path: "/gallery",
+});
 
 type Params = { searchParams: Promise<{ page?: string }> };
 

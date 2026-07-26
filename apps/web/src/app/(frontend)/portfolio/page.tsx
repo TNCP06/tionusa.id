@@ -3,16 +3,18 @@ import Link from "next/link";
 import { getProfile, getPublishedEntries } from "@/lib/payload";
 import { ProjectLedger } from "../components/ProjectLedger";
 import { SiteFooter } from "../components/SiteFooter";
+import { pageMeta } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const profile = await getProfile();
-  return {
-    title: `Portfolio · ${profile.fullName || "Tionusa Catur Pamungkas"}`,
-    description: "Selected web applications, frontend design systems, and fullstack projects.",
-  };
-}
+// The site name comes from the root layout's title template — repeating it here
+// rendered "Portfolio · Tionusa · Tionusa Catur Pamungkas".
+export const metadata: Metadata = pageMeta({
+  title: "Portfolio",
+  description:
+    "Selected fullstack projects: Node.js and Express APIs, MySQL and SQLite schemas, Dockerised deploys, and the Next.js frontends on top.",
+  path: "/portfolio",
+});
 
 export default async function PortfolioPage() {
   const [profile, entries] = await Promise.all([

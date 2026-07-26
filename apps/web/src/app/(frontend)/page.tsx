@@ -8,19 +8,18 @@ import { SiteFooter } from "./components/SiteFooter";
 import { GalleryGrid } from "./components/GalleryGrid";
 import { galleryImages, mediaUrl } from "@/lib/format";
 import { stackCount } from "@/lib/stack";
+import { SITE_DESCRIPTION, SITE_TITLE, pageMeta } from "@/lib/seo";
 
 // Rendered on demand (DB is a runtime volume); data is cached via tags.
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const profile = await getProfile();
-  return {
-    title: profile.fullName || "Tionusa Catur Pamungkas",
-    description:
-      profile.headline ||
-      "Fullstack Developer — React, Next.js, Node, and the data layers behind them.",
-  };
-}
+// The root layout's title template does not apply to its own segment, so the
+// homepage title has to carry the full string itself.
+export const metadata: Metadata = pageMeta({
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  path: "/",
+});
 
 export default async function Home() {
   const [profile, entries] = await Promise.all([
