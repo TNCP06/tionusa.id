@@ -1,10 +1,16 @@
 import type { MetadataRoute } from "next";
-
-const base = process.env.SITE_URL || "http://localhost:3000";
+import { SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: { userAgent: "*", allow: "/", disallow: "/admin" },
-    sitemap: `${base}/sitemap.xml`,
+    rules: {
+      userAgent: "*",
+      // `Allow` is listed first so it wins the longest-match rule: uploads are
+      // served from /api/media/file/*, so a blanket /api/ block would hide
+      // every image on the site.
+      allow: ["/", "/api/media/"],
+      disallow: ["/admin", "/api/"],
+    },
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }
