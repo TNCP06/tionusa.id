@@ -5,6 +5,7 @@ import { getArticleBySlug, getRelated } from "@/lib/blog";
 import { ArticleCard } from "../../components/ArticleCard";
 import { ShareBar } from "../../components/ShareBar";
 import { BLOG_DESCRIPTION, BLOG_NAME, BLOG_URL, pageMeta } from "@/lib/seo";
+import { formatSlug } from "@/fields/slug";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -110,7 +111,7 @@ export default async function ArticlePage({ params }: Params) {
       {tags.length > 0 ? (
         <div className="k-tags">
           {tags.map((t) => (
-            <a key={t} className="k-tag" href={`/?tag=${encodeURIComponent(t)}`}>
+            <a key={t} className="k-tag" href={`/tag/${formatSlug(t)}`}>
               #{t}
             </a>
           ))}

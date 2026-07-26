@@ -3,9 +3,21 @@ import config from "@payload-config";
 import { unstable_cache } from "next/cache";
 import type { Where } from "payload";
 import type { Article } from "../payload-types";
+import { formatSlug } from "../fields/slug";
 
 const payloadPromise = getPayload({ config });
 const PUBLISHED = { _status: { equals: "published" } };
+
+/** Mirrors the `category` enum in collections/Articles.ts. */
+export const CATEGORY_LABEL: Record<string, string> = {
+  hiburan: "Hiburan",
+  kpop: "K-Pop",
+  film: "Film",
+  tech: "Tech",
+  tips: "Tips",
+};
+
+export const CATEGORIES = Object.keys(CATEGORY_LABEL);
 
 export const getFeaturedArticles = unstable_cache(
   async (): Promise<Article[]> => {
@@ -54,6 +66,29 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
     ["blog-article", slug], { tags: ["articles", `article:${slug}`] },
   )();
 }
+
+/**
+ * Tags are free-form text (`tags` is a hasMany text field), so a slug cannot be
+ * matched in SQL. Build slug → original-tag from the published set instead; the
+ * result is cached and busted by the same `articles` tag as every other query.
+ */
+export const getTagMap = unstable_cache(
+  async (): Promise<Record<string, string>> => {
+    const payload = await payloadPromise;
+    const { docs } = await payload.find({
+      collection: "articles", locale: "id", depth: 0, limit: 1000,
+      where: PUBLISHED,
+    });
+    const map: Record<string, string> = {};
+    for (const doc of docs) {
+      for (const tag of doc.tags ?? []) {
+        if (tag) map[formatSlug(tag)] = tag;
+      }
+    }
+    return map;
+  },
+  ["blog-tag-map"], { tags: ["articles"] },
+);
 
 export async function getRelated(category: string, excludeSlug: string): Promise<Article[]> {
   return unstable_cache(

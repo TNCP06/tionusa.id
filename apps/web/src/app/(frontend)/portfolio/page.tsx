@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getProfile, getPublishedEntries } from "@/lib/payload";
-import { ProjectLedger } from "../components/ProjectLedger";
+import { CATEGORIES, ProjectLedger } from "../components/ProjectLedger";
 import { SiteFooter } from "../components/SiteFooter";
 import { pageMeta } from "@/lib/seo";
 
@@ -16,7 +16,18 @@ export const metadata: Metadata = pageMeta({
   path: "/portfolio",
 });
 
-export default async function PortfolioPage() {
+type Params = {
+  searchParams: Promise<{ page?: string; category?: string }>;
+};
+
+export default async function PortfolioPage({ searchParams }: Params) {
+  const { page: pageParam, category: categoryParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+  const category =
+    categoryParam && CATEGORIES.includes(categoryParam as (typeof CATEGORIES)[number])
+      ? categoryParam
+      : "all";
+
   const [profile, entries] = await Promise.all([
     getProfile(),
     getPublishedEntries(),
@@ -42,9 +53,14 @@ export default async function PortfolioPage() {
         </div>
       </header>
 
-      <section className="section" style={{ paddingTop: 0 }} aria-label="Projects">
+      <section id="projects" className="section" style={{ paddingTop: 0 }} aria-label="Projects">
         <div className="wrap">
-          <ProjectLedger entries={entries} showFilters={true} showAllLink={false} />
+          <ProjectLedger
+            entries={entries}
+            page={page}
+            category={category}
+            showFilters
+          />
         </div>
       </section>
       </div>

@@ -1,8 +1,6 @@
 import type { MetadataRoute } from "next";
-import { getArticles } from "@/lib/blog";
-
-// `||` not `??`: .env sets NEXT_PUBLIC_BLOG_URL="" (empty, not unset) until filled in.
-const base = process.env.NEXT_PUBLIC_BLOG_URL || "https://blog.tncp.web.id";
+import { CATEGORIES, getArticles } from "@/lib/blog";
+import { BLOG_URL as base } from "@/lib/seo";
 
 // Queried at request time (DB is a runtime volume).
 export const dynamic = "force-dynamic";
@@ -10,7 +8,11 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { docs } = await getArticles({ limit: 1000 });
   return [
-    { url: base, lastModified: new Date() },
+    { url: `${base}/`, lastModified: new Date() },
+    ...CATEGORIES.map((c) => ({
+      url: `${base}/kategori/${c}`,
+      lastModified: new Date(),
+    })),
     ...docs
       .filter((a) => a.slug)
       .map((a) => ({

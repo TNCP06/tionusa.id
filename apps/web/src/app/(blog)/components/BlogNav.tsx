@@ -1,20 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./ThemeToggle";
 
+// Kept literal, not imported from lib/blog: that module opens a Payload client
+// at import time and this is a client component.
 const tabs = [
-  { label: "Semua", value: "", href: "/" },
-  { label: "Hiburan", value: "hiburan", href: "/?cat=hiburan" },
-  { label: "K-Pop", value: "kpop", href: "/?cat=kpop" },
-  { label: "Film", value: "film", href: "/?cat=film" },
-  { label: "Tech", value: "tech", href: "/?cat=tech" },
-  { label: "Tips", value: "tips", href: "/?cat=tips" },
+  { label: "Semua", href: "/" },
+  { label: "Hiburan", href: "/kategori/hiburan" },
+  { label: "K-Pop", href: "/kategori/kpop" },
+  { label: "Film", href: "/kategori/film" },
+  { label: "Tech", href: "/kategori/tech" },
+  { label: "Tips", href: "/kategori/tips" },
 ];
 
 export function BlogNav() {
-  const cat = useSearchParams().get("cat") ?? "";
+  const pathname = usePathname();
 
   return (
     <nav className="k-nav">
@@ -26,8 +28,8 @@ export function BlogNav() {
           <div className="k-tabs">
             {tabs.map((t) => (
               <Link
-                key={t.label}
-                className={`k-tab${t.value === cat ? " k-tab--active" : ""}`}
+                key={t.href}
+                className={`k-tab${t.href === pathname ? " k-tab--active" : ""}`}
                 href={t.href}
               >
                 {t.label}

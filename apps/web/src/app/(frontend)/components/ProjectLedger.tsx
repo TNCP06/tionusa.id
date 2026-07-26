@@ -1,15 +1,27 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { EntryRow } from "./EntryRow";
 import type { PortfolioEntry } from "@/payload-types";
 
+const PER_PAGE = 6;
+
+/** `value` doubles as the `?category=` value and the `entryType` it matches. */
+const FILTERS = [
+  { label: "All", value: "all" },
+  { label: "Projects", value: "project" },
+  { label: "Work", value: "work_experience" },
+  { label: "Education", value: "education" },
+  { label: "Other", value: "other" },
+] as const;
+
+export const CATEGORIES = FILTERS.map((f) => f.value);
+
 interface ProjectLedgerProps {
   entries: PortfolioEntry[];
-  limit?: number;
+  /** 1-based, already clamped by the page. */
+  page: number;
+  /** One of CATEGORIES; "all" means unfiltered. */
+  category: string;
   showFilters?: boolean;
-  showAllLink?: boolean;
 }
 
 function getPageNumbers(currentPage: number, totalPages: number): (number | "...")[] {
@@ -43,38 +55,41 @@ function getPageNumbers(currentPage: number, totalPages: number): (number | "...
   return pages;
 }
 
+/**
+ * Filtering and paging are URL state, not component state: every tab and page
+ * number is a real crawlable href, and the whole ledger stays server-rendered.
+ */
 export function ProjectLedger({
   entries,
-  limit,
+  page,
+  category,
   showFilters = false,
-  showAllLink = false,
 }: ProjectLedgerProps) {
-  const [activeFilter, setActiveFilter] = useState<string>("all");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 6;
-
   if (entries.length === 0) {
     return <p className="empty">No published works yet.</p>;
   }
 
-  const handleFilterChange = (filter: string) => {
-    setActiveFilter(filter);
-    setCurrentPage(1);
+  const href = (opts: { category?: string; page?: number }) => {
+    const cat = opts.category ?? category;
+    const p = opts.page ?? 1;
+    const q = new URLSearchParams();
+    if (cat !== "all") q.set("category", cat);
+    if (p > 1) q.set("page", String(p));
+    const qs = q.toString();
+    return `/portfolio${qs ? `?${qs}` : ""}#projects`;
   };
 
   // Filter by active tab, floating featured entries to the top.
   const filteredEntries = entries
-    .filter((e) => activeFilter === "all" || e.entryType === activeFilter)
+    .filter((e) => category === "all" || e.entryType === category)
     .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
 
-  const totalPages = Math.ceil(filteredEntries.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
 
   // Offset so entry numbering keeps counting across pages (07, 08 … not 01 again).
-  const pageOffset = showAllLink ? 0 : (currentPage - 1) * itemsPerPage;
-
-  const visibleEntries = showAllLink
-    ? filteredEntries.slice(0, limit ?? 6)
-    : filteredEntries.slice(pageOffset, pageOffset + itemsPerPage);
+  const pageOffset = (currentPage - 1) * PER_PAGE;
+  const visibleEntries = filteredEntries.slice(pageOffset, pageOffset + PER_PAGE);
 
   const pageNumbers = getPageNumbers(currentPage, totalPages);
 
@@ -83,21 +98,14 @@ export function ProjectLedger({
       {showFilters && (
         <div className="filter-tabs">
           <span className="mono" style={{ marginRight: "0.5rem" }}>Filter</span>
-          {[
-            { label: "All", value: "all" },
-            { label: "Projects", value: "project" },
-            { label: "Work", value: "work_experience" },
-            { label: "Education", value: "education" },
-            { label: "Other", value: "other" },
-          ].map((tab) => (
-            <button
+          {FILTERS.map((tab) => (
+            <Link
               key={tab.value}
-              className={`filter-tab${activeFilter === tab.value ? " filter-tab--active" : ""}`}
-              onClick={() => handleFilterChange(tab.value)}
-              type="button"
+              className={`filter-tab${category === tab.value ? " filter-tab--active" : ""}`}
+              href={href({ category: tab.value })}
             >
               {tab.label}
-            </button>
+            </Link>
           ))}
         </div>
       )}
@@ -112,28 +120,23 @@ export function ProjectLedger({
         ))}
       </div>
 
-      {showAllLink && filteredEntries.length > (limit ?? 6) && (
+      {totalPages > 1 && (
         <div className="ledger-actions">
-          <Link href="/portfolio" className="btn">
-            View full archive →
-          </Link>
-        </div>
-      )}
-
-      {!showAllLink && totalPages > 1 && (
-        <div className="ledger-actions">
-          <button
+          <Link
             className="btn-show-more"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            type="button"
-            style={{ opacity: currentPage === 1 ? 0.4 : 1 }}
+            href={href({ page: currentPage - 1 })}
+            aria-disabled={currentPage === 1}
+            rel="prev"
+            style={{
+              opacity: currentPage === 1 ? 0.4 : 1,
+              pointerEvents: currentPage === 1 ? "none" : "auto",
+            }}
           >
             ← Prev
-          </button>
+          </Link>
 
-          {pageNumbers.map((page, i) => {
-            if (page === "...") {
+          {pageNumbers.map((p, i) => {
+            if (p === "...") {
               return (
                 <span
                   key={`ellipsis-${i}`}
@@ -149,31 +152,34 @@ export function ProjectLedger({
               );
             }
             return (
-              <button
-                key={page}
+              <Link
+                key={p}
                 className="btn-show-more"
-                onClick={() => setCurrentPage(page)}
-                type="button"
+                href={href({ page: p })}
+                aria-current={currentPage === p ? "page" : undefined}
                 style={{
                   minWidth: "2.75rem",
-                  background: currentPage === page ? "var(--ink)" : "transparent",
-                  color: currentPage === page ? "var(--paper)" : "var(--ink)",
+                  background: currentPage === p ? "var(--ink)" : "transparent",
+                  color: currentPage === p ? "var(--paper)" : "var(--ink)",
                 }}
               >
-                {String(page).padStart(2, "0")}
-              </button>
+                {String(p).padStart(2, "0")}
+              </Link>
             );
           })}
 
-          <button
+          <Link
             className="btn-show-more"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            type="button"
-            style={{ opacity: currentPage === totalPages ? 0.4 : 1 }}
+            href={href({ page: currentPage + 1 })}
+            aria-disabled={currentPage === totalPages}
+            rel="next"
+            style={{
+              opacity: currentPage === totalPages ? 0.4 : 1,
+              pointerEvents: currentPage === totalPages ? "none" : "auto",
+            }}
           >
             Next →
-          </button>
+          </Link>
         </div>
       )}
     </div>

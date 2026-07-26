@@ -1,6 +1,7 @@
 import type { Field } from "payload";
 
-const formatSlug = (val: string): string =>
+/** Lowercase, ASCII-word, dash-separated. Also used for tag URLs and upload filenames. */
+export const formatSlug = (val: string): string =>
   val
     .toLowerCase()
     .trim()

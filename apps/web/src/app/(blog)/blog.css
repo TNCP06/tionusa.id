@@ -632,6 +632,14 @@ a {
   color: var(--k-muted);
   margin: 0 0 1.25rem;
 }
+
+/* h1 of a category or tag listing. */
+.k-listing-title {
+  font-family: var(--k-display);
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  font-weight: 600;
+  margin: 2rem 0 1.5rem;
+}
 .k-filter a {
   color: var(--k-accent);
 }
