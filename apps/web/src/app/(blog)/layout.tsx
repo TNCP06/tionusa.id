@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import { BlogNav } from "./components/BlogNav";
+import { BlogFooter } from "./components/BlogFooter";
 import { BLOG_DESCRIPTION, BLOG_NAME, BLOG_TITLE, BLOG_URL } from "@/lib/seo";
 import "./blog.css";
 
@@ -59,6 +60,7 @@ export default function BlogLayout({
           <BlogNav />
         </Suspense>
         {children}
+        <BlogFooter />
       </body>
     </html>
   );

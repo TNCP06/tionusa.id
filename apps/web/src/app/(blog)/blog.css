@@ -633,6 +633,23 @@ a {
   margin: 0 0 1.25rem;
 }
 
+.k-footer {
+  border-top: 1.5px solid var(--k-line);
+  margin-top: 4rem;
+  padding: 2rem 0;
+  font-size: 0.85rem;
+  color: var(--k-muted);
+}
+.k-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  justify-content: space-between;
+}
+.k-footer a {
+  color: var(--k-accent);
+}
+
 /* h1 of a category or tag listing. */
 .k-listing-title {
   font-family: var(--k-display);

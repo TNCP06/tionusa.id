@@ -48,7 +48,13 @@ export function personSchema(
     "@context": "https://schema.org",
     "@type": "Person",
     "@id": PERSON_ID,
-    name: profile.fullName || SITE_NAME,
+    // The full name is the canonical entity name even when the site brands
+    // itself "Tionusa" — a nickname alone is too ambiguous to resolve to a
+    // person. The short form is declared as an alias instead of replacing it.
+    name: SITE_NAME,
+    ...(profile.fullName && profile.fullName !== SITE_NAME
+      ? { alternateName: profile.fullName }
+      : { alternateName: "Tionusa" }),
     jobTitle: "Fullstack Developer",
     url: `${SITE_URL}/`,
     ...(profile.headline ? { description: profile.headline } : {}),
