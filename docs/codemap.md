@@ -47,8 +47,8 @@
 | Blog SEO (sitemap, RSS, robots) | `apps/web/src/app/(blog)/%5Fblog/sitemap.ts`, `%5Fblog/rss.xml/route.ts`, `%5Fblog/robots.txt/route.ts` |
 | Blog data layer (cached Local API queries) | `apps/web/src/lib/blog.ts` |
 | Ingest helpers (markdown↔Lexical, reading time) | `apps/web/src/lib/ingest.ts` |
-| Ingest API — articles (create/update draft, publish) — `INGEST_SECRET`-guarded | `apps/web/src/app/(payload)/api/ingest/article/route.ts`, `.../[id]/publish/route.ts` |
-| Ingest API — portfolio (POST draft w/ manual-edit protection + `acceptOwnerEdit` override, GET owner's version + feedback for the AI curator, publish) | `apps/web/src/app/(payload)/api/ingest/portfolio/route.ts`, `.../[id]/publish/route.ts` |
+| Ingest API — articles (create/update draft, publish) — `INGEST_SECRET`-guarded | `apps/web/src/app/(payload)/api/ingest/article/route.ts`, `.../[id]/publish/route.ts`, `.../[id]/unpublish/route.ts` |
+| Ingest API — portfolio (POST draft w/ manual-edit protection + `acceptOwnerEdit` override, GET owner's version + feedback for the AI curator, publish/unpublish) | `apps/web/src/app/(payload)/api/ingest/portfolio/route.ts`, `.../[id]/publish/route.ts`, `.../[id]/unpublish/route.ts` |
 | Ingest API — visitor stats (read-only, for PAI 👀 menu) | `apps/web/src/app/(payload)/api/ingest/visitors/route.ts` |
 | Backup | *(Stage F)* `scripts/backup.sh` |
 | CI/CD | *(Stage E)* `.github/workflows/*`, `apps/web/Dockerfile`, `docker-compose.yml` |
