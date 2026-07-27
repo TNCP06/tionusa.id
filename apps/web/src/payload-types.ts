@@ -97,9 +97,11 @@ export interface Config {
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('id' | 'en') | ('id' | 'en')[];
   globals: {
     profile: Profile;
+    'portfolio-curation': PortfolioCuration;
   };
   globalsSelect: {
     profile: ProfileSelect<false> | ProfileSelect<true>;
+    'portfolio-curation': PortfolioCurationSelect<false> | PortfolioCurationSelect<true>;
   };
   locale: 'id' | 'en';
   widgets: {
@@ -275,6 +277,10 @@ export interface PortfolioEntry {
       | boolean
       | null;
     curatedAt?: string | null;
+    /**
+     * Catatan untuk AI tentang entri INI — fakta yang salah, atau konteks yang tak terlihat dari repo (mis. "ini proyek klien asli, bukan latihan"). Dibaca setiap scan dan tidak pernah ditimpa AI. Aturan yang berlaku ke semua entri ditulis di global Catatan Kurasi Portfolio.
+     */
+    ownerFeedback?: string | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -559,6 +565,7 @@ export interface PortfolioEntriesSelect<T extends boolean = true> {
         aiRationale?: T;
         rubricScores?: T;
         curatedAt?: T;
+        ownerFeedback?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -699,6 +706,21 @@ export interface Profile {
   createdAt?: string | null;
 }
 /**
+ * Aturan menulis untuk AI kurator portfolio (PAI).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "portfolio-curation".
+ */
+export interface PortfolioCuration {
+  id: number;
+  /**
+   * Berlaku ke SEMUA entri portfolio. Satu aturan per baris, mis. "maksimal 3 paragraf", "jangan pakai kata innovative". Koreksi khusus satu repo ditulis di kolom Owner Feedback pada entri repo itu, bukan di sini.
+   */
+  styleNotes?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "profile_select".
  */
@@ -719,6 +741,16 @@ export interface ProfileSelect<T extends boolean = true> {
       };
   cvFile?: T;
   availableForWork?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "portfolio-curation_select".
+ */
+export interface PortfolioCurationSelect<T extends boolean = true> {
+  styleNotes?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

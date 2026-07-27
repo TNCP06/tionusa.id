@@ -9,7 +9,7 @@
 | Payload config (SMTP email adapter, prodMigrations) | `apps/web/src/payload.config.ts` |
 | DB migrations (prod schema) | `apps/web/src/migrations/*` |
 | Collections | `apps/web/src/collections/{Users,Media,PortfolioEntries,Articles,Messages,VisitorLogs}.ts` |
-| Globals | `apps/web/src/globals/Profile.ts` |
+| Globals | `apps/web/src/globals/{Profile,PortfolioCuration}.ts` (PortfolioCuration = AI curator style notes) |
 | Access control + agent guardrails | `apps/web/src/access.ts` |
 | Slug helper | `apps/web/src/fields/slug.ts` |
 | Revalidation hooks | `apps/web/src/hooks/revalidate.ts` (guarded for CLI context) |
@@ -46,9 +46,9 @@
 | Blog footer (backlink to tncp.web.id) | `apps/web/src/app/(blog)/components/BlogFooter.tsx` |
 | Blog SEO (sitemap, RSS, robots) | `apps/web/src/app/(blog)/%5Fblog/sitemap.ts`, `%5Fblog/rss.xml/route.ts`, `%5Fblog/robots.txt/route.ts` |
 | Blog data layer (cached Local API queries) | `apps/web/src/lib/blog.ts` |
-| Ingest helpers (markdown→Lexical, reading time) | `apps/web/src/lib/ingest.ts` |
+| Ingest helpers (markdown↔Lexical, reading time) | `apps/web/src/lib/ingest.ts` |
 | Ingest API — articles (create/update draft, publish) — `INGEST_SECRET`-guarded | `apps/web/src/app/(payload)/api/ingest/article/route.ts`, `.../[id]/publish/route.ts` |
-| Ingest API — portfolio (draft with manual-edit protection, publish) | `apps/web/src/app/(payload)/api/ingest/portfolio/route.ts`, `.../[id]/publish/route.ts` |
+| Ingest API — portfolio (POST draft w/ manual-edit protection + `acceptOwnerEdit` override, GET owner's version + feedback for the AI curator, publish) | `apps/web/src/app/(payload)/api/ingest/portfolio/route.ts`, `.../[id]/publish/route.ts` |
 | Ingest API — visitor stats (read-only, for PAI 👀 menu) | `apps/web/src/app/(payload)/api/ingest/visitors/route.ts` |
 | Backup | *(Stage F)* `scripts/backup.sh` |
 | CI/CD | *(Stage E)* `.github/workflows/*`, `apps/web/Dockerfile`, `docker-compose.yml` |

@@ -13,6 +13,7 @@ import { Articles } from "./collections/Articles";
 import { Messages } from "./collections/Messages";
 import { VisitorLogs } from "./collections/VisitorLogs";
 import { Profile } from "./globals/Profile";
+import { PortfolioCuration } from "./globals/PortfolioCuration";
 import { migrations } from "./migrations";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -38,7 +39,7 @@ export default buildConfig({
       })
     : undefined,
   collections: [Users, Media, PortfolioEntries, Articles, Messages, VisitorLogs],
-  globals: [Profile],
+  globals: [Profile, PortfolioCuration],
   localization: {
     locales: [
       { label: "Bahasa Indonesia", code: "id" },

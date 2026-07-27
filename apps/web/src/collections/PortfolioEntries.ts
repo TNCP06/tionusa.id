@@ -142,6 +142,17 @@ export const PortfolioEntries: CollectionConfig = {
         { name: "aiRationale", type: "textarea" },
         { name: "rubricScores", type: "json" },
         { name: "curatedAt", type: "date" },
+        {
+          name: "ownerFeedback",
+          type: "textarea",
+          admin: {
+            description:
+              "Catatan untuk AI tentang entri INI — fakta yang salah, atau konteks " +
+              "yang tak terlihat dari repo (mis. \"ini proyek klien asli, bukan latihan\"). " +
+              "Dibaca setiap scan dan tidak pernah ditimpa AI. Aturan yang berlaku ke " +
+              "semua entri ditulis di global Catatan Kurasi Portfolio.",
+          },
+        },
       ],
     },
   ],

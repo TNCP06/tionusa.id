@@ -1,9 +1,20 @@
 import config from "@payload-config";
-import { convertMarkdownToLexical, editorConfigFactory } from "@payloadcms/richtext-lexical";
+import {
+  convertLexicalToMarkdown,
+  convertMarkdownToLexical,
+  editorConfigFactory,
+} from "@payloadcms/richtext-lexical";
 
 export async function markdownToLexical(markdown: string) {
   const editorConfig = await editorConfigFactory.default({ config: await config });
   return convertMarkdownToLexical({ editorConfig, markdown });
+}
+
+/** Round-trip back to markdown so the AI curator can read the owner's own wording. */
+export async function lexicalToMarkdown(data: unknown): Promise<string> {
+  if (!data || typeof data !== "object") return "";
+  const editorConfig = await editorConfigFactory.default({ config: await config });
+  return convertLexicalToMarkdown({ editorConfig, data: data as never });
 }
 
 /**

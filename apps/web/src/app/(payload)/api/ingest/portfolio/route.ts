@@ -1,11 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPayload } from "payload";
 import config from "@payload-config";
-import { markdownToLexical, safeLinks } from "@/lib/ingest";
+import { lexicalToMarkdown, markdownToLexical, safeLinks } from "@/lib/ingest";
 
 function authorized(req: NextRequest): boolean {
   const secret = process.env.INGEST_SECRET;
   return !!secret && req.headers.get("authorization") === `Bearer ${secret}`;
+}
+
+// What PAI needs before it re-scores a repo: the owner's own wording and links
+// (so a regenerate preserves them instead of dropping them) plus the feedback
+// the owner wrote for the AI. Manual entries are excluded — PAI may never touch
+// them, so it has no reason to read them either.
+// `locale: "id"` matches what POST writes; another locale would read back empty.
+export async function GET(req: NextRequest) {
+  if (!authorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const payload = await getPayload({ config });
+  const { docs } = await payload.find({
+    collection: "portfolio-entries",
+    where: { "curation.source": { equals: "ai" } },
+    limit: 500,
+    locale: "id",
+    depth: 0,
+  });
+  const curation = (await payload.findGlobal({ slug: "portfolio-curation" })) as any;
+
+  const items = await Promise.all(
+    docs.map(async (d: any) => ({
+      id: d.id,
+      externalId: d.externalId ?? "",
+      title: d.title ?? "",
+      summary: d.summary ?? "",
+      bodyMarkdown: await lexicalToMarkdown(d.body),
+      techStack: d.techStack ?? [],
+      links: safeLinks(d.links),
+      ownerFeedback: d.curation?.ownerFeedback ?? "",
+      curatedAt: d.curation?.curatedAt ?? null,
+      updatedAt: d.updatedAt,
+      published: d._status === "published",
+    })),
+  );
+  return NextResponse.json({ styleNotes: curation?.styleNotes ?? "", items });
 }
 
 export async function POST(req: NextRequest) {
@@ -28,7 +64,7 @@ export async function POST(req: NextRequest) {
   const {
     externalId, title, entryType, summary, bodyMarkdown, techStack, links, startDate,
     endDate, isOngoing, featured, priorityScore, rationale, rubricScores, sourceRepo,
-    updateOnly,
+    updateOnly, acceptOwnerEdit,
   } = body;
   if (!externalId || !title) {
     return NextResponse.json({ error: "externalId, title required" }, { status: 400 });
@@ -47,9 +83,14 @@ export async function POST(req: NextRequest) {
   }
   // Preserve manual edits: if the owner changed this AI entry AFTER the AI last
   // wrote it (updatedAt clearly later than curatedAt), don't clobber it with a
-  // fresh regenerate. Not a permanent lock — it just won't overwrite your edits
-  // with outdated info. (10s buffer covers the AI's own write cycle.)
-  if (prev) {
+  // fresh regenerate. (10s buffer covers the AI's own write cycle.)
+  //
+  // On its own this never unlocks: curatedAt only advances on a successful write,
+  // and writes stay blocked — so an edited entry can never receive a later repo's
+  // changes. `acceptOwnerEdit` is the one way out: PAI sets it only after the
+  // owner approved a proposed rewrite in Telegram, having seen it. The 409 above
+  // still stands — a hand-made entry is never writable by the AI.
+  if (prev && !acceptOwnerEdit) {
     const curatedAt = Date.parse(prev.curation?.curatedAt ?? "") || 0;
     const updatedAt = Date.parse(prev.updatedAt ?? "") || 0;
     if (curatedAt && updatedAt > curatedAt + 10_000) {
@@ -81,6 +122,9 @@ export async function POST(req: NextRequest) {
       aiRationale: rationale ?? "",
       rubricScores: rubricScores ?? {},
       curatedAt: new Date().toISOString(),
+      // Owner-only, and the whole `curation` group is rewritten on every update —
+      // so it has to be carried over explicitly or each AI write would erase it.
+      ownerFeedback: prev?.curation?.ownerFeedback ?? "",
     },
   };
 
