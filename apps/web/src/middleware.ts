@@ -57,19 +57,55 @@ export function middleware(req: NextRequest) {
   return trackVisit(req, NextResponse.next());
 }
 
-const BOT_UA = /bot|crawl|spider|slurp|preview|scan|fetch|monitor|probe|curl|wget|python|go-http|headless|lighthouse|facebookexternal|meta-external/i;
+const BOT_UA =
+  /bot|googleother|gptbot|chatgpt|claudebot|anthropic|perplexity|cohere|bytespider|amazonbot|applebot|bingbot|yandexbot|duckduckbot|semrushbot|ahrefsbot|dotbot|petalbot|crawl|spider|slurp|preview|scan|fetch|monitor|probe|curl|wget|python|go-http|headless|lighthouse|selenium|puppeteer|playwright|postman|insomnia|facebookexternal|meta-external|censys|shodan|urlscan/i;
 
 // Crawlers/scanners that browse with a real-browser UA, so the UA filter
 // misses them — but they come from known datacenter IP space. ponytail: prefix
 // strings, not a full ASN list; extend when another crawler shows up in logs.
 const BOT_IP_PREFIXES = [
-  "2a03:288", // Meta link-preview
-  "173.252.", // Meta
-  "69.171.", // Meta
-  "66.220.", // Meta
-  "192.36.109.", // urlscan.io scan cluster (Internetbolaget, SE)
-  "158.173.", // IBM Cloud / SoftLayer (Frankfurt scanner seen in logs)
+  // AI & Search Crawlers
+  "66.249.", // Google crawler pool (GoogleOther, Googlebot)
+  // Meta link-preview
+  "2a03:288",
+  "173.252.",
+  "69.171.",
+  "66.220.",
+  // Cloud & Datacenter Hosting Ranges (AWS, DO, OVH, Scanners, Linode, etc.)
   "34.", // Google Cloud + AWS block (34.0.0.0/8 is all cloud, no humans)
+  "3.",
+  "15.",
+  "44.",
+  "13.",
+  "18.",
+  "52.",
+  "54.", // AWS EC2
+  "143.198.",
+  "138.197.",
+  "137.184.",
+  "159.223.",
+  "147.182.", // DigitalOcean
+  "141.94.",
+  "151.80.",
+  "51.254.",
+  "57.129.",
+  "158.173.", // OVH SAS / IBM Cloud / SoftLayer
+  "93.158.",
+  "185.13.",
+  "192.71.",
+  "5.198.",
+  "194.132.",
+  "192.36.109.", // Sweden scan clusters / urlscan
+  "149.57.",
+  "23.27.",
+  "162.216.",
+  "103.168.",
+  "104.165.", // QuadraNet / ColoCrossing / DataCamp
+  "45.56.",
+  "45.39.",
+  "157.143.",
+  "45.153.",
+  "167.86.", // Linode / Contabo / Misc VPS hosting
 ];
 
 // Visitor → Telegram notification. Middleware only decides "is this a real
@@ -78,10 +114,12 @@ const BOT_IP_PREFIXES = [
 function trackVisit(req: NextRequest, res: NextResponse): NextResponse {
   const ua = req.headers.get("user-agent") ?? "";
   const accept = req.headers.get("accept") ?? "";
+  const acceptLanguage = req.headers.get("accept-language") ?? "";
   const { pathname } = req.nextUrl;
   if (
     req.method !== "GET" ||
     !accept.includes("text/html") || // excludes RSC/prefetch/data requests
+    !acceptLanguage || // legitimate browsers in any country send accept-language
     !ua ||
     BOT_UA.test(ua) ||
     // real WebKit/Blink browsers always carry "(KHTML, like Gecko)"; an
