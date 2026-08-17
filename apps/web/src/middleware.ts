@@ -27,6 +27,22 @@ export function middleware(req: NextRequest) {
     return new NextResponse(null, { status: 404 });
   }
 
+  // Short links & typo tolerance for ref links (e.g. /r/linkedin, /ref=linkedin, /ref/linkedin)
+  const refMatch =
+    !isBlog &&
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/api") &&
+    !PUBLIC_ASSET.test(pathname)
+      ? pathname.match(/^\/(?:r\/|ref[=/:]?)([^/]+)\/?$/i)
+      : null;
+  if (refMatch) {
+    const source = refMatch[1];
+    const url = req.nextUrl.clone();
+    url.pathname = "/";
+    url.searchParams.set("ref", source);
+    return NextResponse.redirect(url, 307);
+  }
+
   if (
     isBlog &&
     !pathname.startsWith("/admin") &&
@@ -103,6 +119,8 @@ function trackVisit(req: NextRequest, res: NextResponse): NextResponse {
     (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
   if (BOT_IP_PREFIXES.some((p) => ip.startsWith(p))) return res;
 
+  const fullPath = pathname + (req.nextUrl.search || "");
+
   // Fire-and-forget to our own port — never block or fail the page.
   void fetch(`http://127.0.0.1:${process.env.PORT || "3000"}/api/visit`, {
     method: "POST",
@@ -111,7 +129,7 @@ function trackVisit(req: NextRequest, res: NextResponse): NextResponse {
       authorization: `Bearer ${process.env.INGEST_SECRET ?? ""}`,
     },
     body: JSON.stringify({
-      path: pathname,
+      path: fullPath,
       host: host.startsWith("blog.") ? "blog" : "site",
       ip,
       country: req.headers.get("cf-ipcountry") ?? "",

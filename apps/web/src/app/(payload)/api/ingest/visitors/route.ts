@@ -55,6 +55,7 @@ export async function GET(req: NextRequest) {
       country: d.country ?? "",
       ip: d.ip ?? "",
       referer: d.referer ?? "",
+      userAgent: d.userAgent ?? "",
       at: d.createdAt,
     })),
   });

@@ -64,7 +64,7 @@ export default async function Home() {
 
               <p className="headline">
                 {profile.headline ||
-                  "I build the backend that carries the product — Node.js and Express APIs on MySQL, containerised with Docker and running on AWS EC2 — and I own the path from schema to deploy, so nothing gets lost in translation."}
+                  "Ship production apps without the usual handoff mess — I own the frontend, the backend, and the deploy, so nothing gets lost in translation."}
               </p>
 
               <div className="actions">
@@ -105,26 +105,23 @@ export default async function Home() {
                 ) : (
                   <>
                     <p>
-                      I am Tionusa Catur Pamungkas, and most projects lose weeks
-                      at the seams — API contract to frontend, frontend to
-                      whoever ends up managing the server. I start at the
-                      backend, where those seams actually cost money, and own the
-                      whole path from schema to deploy: fewer mismatched
-                      assumptions, and what you approve is what runs in
-                      production.
+                      Most projects lose weeks to handoffs — design to frontend,
+                      frontend to backend, backend to whoever manages the server. I
+                      close that gap by owning the whole path myself: fewer
+                      mismatched assumptions, and what you approve in the mockup is
+                      what ships to production.
                     </p>
                     <p>
-                      Node.js and Express on the server, with MySQL and
-                      PostgreSQL schemas designed before the first endpoint —
-                      indexed queries, real migrations, and REST or GraphQL
-                      contracts that stay stable as the product grows.
+                      React, Next.js, and TypeScript on the frontend — component
+                      systems built to be reused, not rebuilt per page, tuned for
+                      Core Web Vitals. Node and relational schemas on the backend,
+                      with REST or GraphQL contracts that stay stable as the product
+                      grows.
                     </p>
                     <p>
-                      Then the part most quotes leave out: Docker images, CI
-                      pipelines, AWS EC2 and self-hosted boxes, and monitoring
-                      that flags problems before your users do. React, Next.js,
-                      and TypeScript sit on top, so the interface is not an
-                      afterthought either. &ldquo;It runs on my machine&rdquo; is
+                      It does not stop at code: Docker images, CI pipelines,
+                      self-hosted infrastructure, and monitoring that flags problems
+                      before your users do. &ldquo;It runs on my machine&rdquo; is
                       not a deliverable — a running product is.
                     </p>
                   </>
@@ -228,10 +225,10 @@ export default async function Home() {
             <div className="contact-info">
               <h3 className="contact-title">Let&rsquo;s build something great together.</h3>
               <p className="contact-desc">
-                Open for freelance work — APIs and backend services, database
-                design, Dockerised deploys on AWS EC2, and the Next.js
-                frontends that sit on top. Tell me what you&rsquo;re building
-                and I&rsquo;ll tell you how fast I can ship it.
+                Open for freelance work — web applications, frontend
+                architecture, design systems, responsive UI. Tell me what
+                you&rsquo;re building and I&rsquo;ll tell you how fast I can
+                ship it.
               </p>
 
               <div className="contact-actions">

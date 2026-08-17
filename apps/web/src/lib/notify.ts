@@ -30,15 +30,64 @@ type Visit = {
 };
 
 /**
+ * Resolves visitor traffic source with fallback layers:
+ * 1. Query parameter (?ref=, ?utm_source=, ?source=, ?src=, ?from=)
+ * 2. HTTP Referer header domain matching
+ * 3. User-Agent in-app browser heuristics (Instagram, LinkedIn, FB, TikTok, etc.)
+ */
+function resolveSource(path: string, referer?: string | null, ua?: string | null): string | null {
+  try {
+    const url = new URL(path, "https://tionusa.id");
+    const ref =
+      url.searchParams.get("ref") ||
+      url.searchParams.get("utm_source") ||
+      url.searchParams.get("source") ||
+      url.searchParams.get("src") ||
+      url.searchParams.get("from");
+    if (ref) return `🔗 Ref: ${ref}`;
+  } catch {}
+
+  if (referer) {
+    const r = referer.toLowerCase();
+    if (r.includes("instagram.com")) return "📱 Instagram";
+    if (r.includes("linkedin.com") || r.includes("lnkd.in")) return "💼 LinkedIn";
+    if (r.includes("t.co") || r.includes("twitter.com") || r.includes("x.com")) return "🐦 X / Twitter";
+    if (r.includes("github.com")) return "🐙 GitHub";
+    if (r.includes("facebook.com") || r.includes("fb.me")) return "👤 Facebook";
+    if (r.includes("tiktok.com")) return "🎵 TikTok";
+    if (r.includes("google.")) return "🔍 Google Search";
+    if (r.includes("bing.com")) return "🔍 Bing Search";
+    if (r.includes("duckduckgo.com")) return "🔍 DuckDuckGo";
+    if (r.includes("youtube.com") || r.includes("youtu.be")) return "▶️ YouTube";
+    if (r.includes("whatsapp")) return "💬 WhatsApp";
+    if (r.includes("telegram") || r.includes("t.me")) return "✈️ Telegram";
+  }
+
+  if (ua) {
+    if (/Instagram/i.test(ua)) return "📱 Instagram App";
+    if (/LinkedInApp/i.test(ua)) return "💼 LinkedIn App";
+    if (/FBAN|FBAV/i.test(ua)) return "👤 Facebook App";
+    if (/Twitter|TwitterAndroid|TwitterforiPhone/i.test(ua)) return "🐦 X / Twitter App";
+    if (/musical_ly|ByteLocale|TikTok/i.test(ua)) return "🎵 TikTok App";
+    if (/WhatsApp/i.test(ua)) return "💬 WhatsApp App";
+    if (/Telegram/i.test(ua)) return "✈️ Telegram App";
+  }
+
+  return null;
+}
+
+/**
  * Telegram ping for a real page view (bots/owner already filtered by the
  * middleware, deduped per IP per hour by /api/visit). Fire-and-forget like
  * the contact notification: the visit row is already persisted.
  */
 export function notifyVisitor(payload: Payload, v: Visit): void {
   const site = v.host === "blog" ? "blog.tionusa.id" : "tionusa.id";
+  const source = resolveSource(v.path, v.referer, v.userAgent);
   const text =
     `👀 Pengunjung — ${site}${v.country ? ` (${v.country})` : ""}\n` +
     `Halaman: ${v.path}\n` +
+    (source ? `Sumber: ${source}\n` : "") +
     (v.ip ? `IP: ${v.ip}\n` : "") +
     (v.referer ? `Dari: ${v.referer}\n` : "") +
     (v.userAgent ? `UA: ${v.userAgent.slice(0, 120)}` : "");
