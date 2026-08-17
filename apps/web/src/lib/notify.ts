@@ -35,7 +35,7 @@ type Visit = {
  * the contact notification: the visit row is already persisted.
  */
 export function notifyVisitor(payload: Payload, v: Visit): void {
-  const site = v.host === "blog" ? "blog.tncp.web.id" : "tncp.web.id";
+  const site = v.host === "blog" ? "blog.tionusa.id" : "tionusa.id";
   const text =
     `👀 Pengunjung — ${site}${v.country ? ` (${v.country})` : ""}\n` +
     `Halaman: ${v.path}\n` +

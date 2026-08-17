@@ -1,7 +1,7 @@
 import { getArticles } from "@/lib/blog";
 
 // `||` not `??`: .env sets NEXT_PUBLIC_BLOG_URL="" (empty, not unset) until filled in.
-const base = process.env.NEXT_PUBLIC_BLOG_URL || "https://blog.tncp.web.id";
+const base = process.env.NEXT_PUBLIC_BLOG_URL || "https://blog.tionusa.id";
 
 // Rendered on demand (DB is a runtime volume).
 export const dynamic = "force-dynamic";

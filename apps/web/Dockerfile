@@ -26,7 +26,7 @@ ENV DATABASE_URI=file:/tmp/build.db
 # NEXT_PUBLIC_* are inlined into the client bundle at build time, not read at
 # runtime — so the VPS .env can't set them. Bake the blog URL here so the "Blog"
 # nav link renders. Override with --build-arg NEXT_PUBLIC_BLOG_URL=… if it moves.
-ARG NEXT_PUBLIC_BLOG_URL=https://blog.tncp.web.id
+ARG NEXT_PUBLIC_BLOG_URL=https://blog.tionusa.id
 ENV NEXT_PUBLIC_BLOG_URL=$NEXT_PUBLIC_BLOG_URL
 # Apply Payload migrations ONCE, single-process, before the build. Otherwise
 # next build's parallel static-generation workers each run prodMigrations on the

@@ -28,9 +28,9 @@ export default buildConfig({
   // (fine for local dev). Telegram delivery is independent (see lib/notify.ts).
   email: process.env.SMTP_HOST
     ? nodemailerAdapter({
-        defaultFromName: "tncp.web.id",
+        defaultFromName: "tionusa.id",
         defaultFromAddress:
-          process.env.SMTP_FROM || process.env.SMTP_USER || "no-reply@tncp.web.id",
+          process.env.SMTP_FROM || process.env.SMTP_USER || "no-reply@tionusa.id",
         transportOptions: {
           host: process.env.SMTP_HOST,
           port: Number(process.env.SMTP_PORT) || 587,

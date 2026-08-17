@@ -4,7 +4,7 @@
  * PRECONDITION — verify before running with --apply:
  *   These renames ship WITHOUT 301 redirects, which is only safe while no
  *   portfolio URL is indexed. Confirm that first:
- *     1. Search `site:tncp.web.id` on Google.
+ *     1. Search `site:tionusa.id` on Google.
  *     2. Check the Search Console coverage report for indexed /portfolio/* URLs.
  *   If any of the old slugs below is indexed, do not run this — add redirects
  *   for those paths first (next.config.ts `redirects()`), then rename.

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // Serve the KANAL blog from the `blog.` subdomain by rewriting its paths onto
-// the (blog) route group's `_blog/*` segment. Portfolio host (tncp.web.id) is
+// the (blog) route group's `_blog/*` segment. Portfolio host (tionusa.id) is
 // untouched — the rewrite only fires when Host starts with `blog.`.
 // Files in public/ (favicon, OG image…) are served from the root on every host,
 // so they must never be rewritten onto /_blog. Extensions of blog *routes*
@@ -79,7 +79,7 @@ function trackVisit(req: NextRequest, res: NextResponse): NextResponse {
   }
 
   // Owner filter: after one /admin login the `payload-token` cookie appears;
-  // convert it into a 1-year `tncp_owner` cookie scoped to .tncp.web.id so it
+  // convert it into a 1-year `tncp_owner` cookie scoped to .tionusa.id so it
   // also covers blog. — the owner's visits are never counted again.
   const host = req.headers.get("host") ?? "";
   if (req.cookies.has("payload-token") || req.cookies.has("tncp_owner")) {
@@ -88,7 +88,11 @@ function trackVisit(req: NextRequest, res: NextResponse): NextResponse {
         maxAge: 60 * 60 * 24 * 365,
         httpOnly: true,
         sameSite: "lax",
-        ...(host.endsWith("tncp.web.id") ? { domain: ".tncp.web.id" } : {}),
+        ...(host.endsWith("tionusa.id")
+          ? { domain: ".tionusa.id" }
+          : host.endsWith("tncp.web.id")
+          ? { domain: ".tncp.web.id" }
+          : {}),
       });
     }
     return res;

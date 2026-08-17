@@ -1,10 +1,10 @@
 # Production compose — the VPS only pulls this image (never builds).
 services:
   web:
-    image: ghcr.io/tncp06/tncp.web.id-web:latest
+    image: ghcr.io/tncp06/tionusa.id-web:latest
     restart: unless-stopped
     # Host 3100 (3000 is taken by another project); container still listens on 3000.
-    # Cloudflare Tunnel points tncp.web.id -> localhost:3100.
+    # Cloudflare Tunnel points tionusa.id -> localhost:3100.
     ports:
       - "127.0.0.1:3100:3000"
     env_file: .env
@@ -25,4 +25,4 @@ services:
       retries: 3
       start_period: 25s
     labels:
-      com.tncp.project: "tncp.web.id"
+      com.tncp.project: "tionusa.id"

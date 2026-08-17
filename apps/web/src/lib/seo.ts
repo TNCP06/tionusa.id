@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = process.env.SITE_URL || "https://tncp.web.id";
+export const SITE_URL = process.env.SITE_URL || "https://tionusa.id";
 // `||` not `??`: .env sets NEXT_PUBLIC_BLOG_URL="" (empty, not unset) until filled in.
 export const BLOG_URL =
-  process.env.NEXT_PUBLIC_BLOG_URL || "https://blog.tncp.web.id";
+  process.env.NEXT_PUBLIC_BLOG_URL || "https://blog.tionusa.id";
 
 export const SITE_NAME = "Tionusa Catur Pamungkas";
 export const SITE_TITLE =

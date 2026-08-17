@@ -1,18 +1,18 @@
-# tncp.web.id
+# tionusa.id
 
 Personal platform for Tionusa Catur Pamungkas, Fullstack developer: a portfolio site plus
 the **KANAL** blog, both served from one app in this repo.
 
-[![CI](https://github.com/TNCP06/tncp.web.id/actions/workflows/ci.yml/badge.svg)](https://github.com/TNCP06/tncp.web.id/actions/workflows/ci.yml)
-[![Deploy](https://github.com/TNCP06/tncp.web.id/actions/workflows/deploy.yml/badge.svg)](https://github.com/TNCP06/tncp.web.id/actions/workflows/deploy.yml)
+[![CI](https://github.com/TNCP06/tionusa.id/actions/workflows/ci.yml/badge.svg)](https://github.com/TNCP06/tionusa.id/actions/workflows/ci.yml)
+[![Deploy](https://github.com/TNCP06/tionusa.id/actions/workflows/deploy.yml/badge.svg)](https://github.com/TNCP06/tionusa.id/actions/workflows/deploy.yml)
 ![Next.js](https://img.shields.io/badge/Next.js-App_Router-black?logo=next.js)
 ![Payload CMS](https://img.shields.io/badge/Payload_CMS-3-000?logo=payloadcms)
 ![SQLite](https://img.shields.io/badge/SQLite-WAL-003B57?logo=sqlite)
 ![pnpm](https://img.shields.io/badge/pnpm-workspaces-F69220?logo=pnpm)
 
-- **Portfolio** (`tncp.web.id`) — profile, experience, and project write-ups, curated through
+- **Portfolio** (`tionusa.id`) — profile, experience, and project write-ups, curated through
   a Payload admin panel.
-- **KANAL blog** (`blog.tncp.web.id`) — articles served from the same host on the `blog.`
+- **KANAL blog** (`blog.tionusa.id`) — articles served from the same host on the `blog.`
   subdomain, populated by an external content pipeline through an `INGEST_SECRET`-guarded
   ingest API (that pipeline lives in a separate private repo).
 
