@@ -15,7 +15,7 @@
 
 - **Draft**: created by Personal-Assistant-AI via `POST /api/ingest/article` (`INGEST_SECRET`-guarded), or manually in `/admin`.
 - **Publish**: `POST /api/ingest/article/[id]/publish`, or a manual publish in `/admin` — sets `publishedAt`, and the `afterChange` hook revalidates.
-- **Live**: published articles appear on the blog (`blog.tncp.web.id`) — index, category tabs, article page, RSS/sitemap.
+- **Live**: published articles appear on the blog (`blog.tionusa.id`) — index, category tabs, article page, RSS/sitemap.
 
 ## Content path
 

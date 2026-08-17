@@ -28,7 +28,7 @@ Cloudflare Tunnel. No Vercel.
             │
    ┌────────┴─────────┐
    │                   │
-tncp.web.id     blog.tncp.web.id
+tionusa.id      blog.tionusa.id
 (portfolio)          (KANAL)
    │                   │
    └────────┬──────────┘
