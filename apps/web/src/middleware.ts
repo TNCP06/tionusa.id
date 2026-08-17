@@ -133,20 +133,20 @@ function trackVisit(req: NextRequest, res: NextResponse): NextResponse {
   }
 
   // Owner filter: after one /admin login the `payload-token` cookie appears;
-  // convert it into a 1-year `tncp_owner` cookie scoped to .tionusa.id so it
+  // convert it into a 1-year `tionusa_owner` cookie scoped to .tionusa.id so it
   // also covers blog. — the owner's visits are never counted again.
   const host = req.headers.get("host") ?? "";
-  if (req.cookies.has("payload-token") || req.cookies.has("tncp_owner")) {
+  if (
+    req.cookies.has("payload-token") ||
+    req.cookies.has("tionusa_owner") ||
+    req.cookies.has("tncp_owner")
+  ) {
     if (req.cookies.has("payload-token")) {
-      res.cookies.set("tncp_owner", "1", {
+      res.cookies.set("tionusa_owner", "1", {
         maxAge: 60 * 60 * 24 * 365,
         httpOnly: true,
         sameSite: "lax",
-        ...(host.endsWith("tionusa.id")
-          ? { domain: ".tionusa.id" }
-          : host.endsWith("tncp.web.id")
-          ? { domain: ".tncp.web.id" }
-          : {}),
+        ...(host.endsWith("tionusa.id") ? { domain: ".tionusa.id" } : {}),
       });
     }
     return res;

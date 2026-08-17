@@ -18,7 +18,7 @@ export function ThemeToggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     try {
-      localStorage.setItem("tncp-theme", next);
+      localStorage.setItem("tionusa-theme", next);
     } catch {
       /* storage unavailable — theme still applies for this session */
     }

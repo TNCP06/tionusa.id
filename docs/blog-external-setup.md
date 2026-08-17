@@ -16,7 +16,7 @@ Belum perlu: apa pun soal Instagram (lagi di-pause).
 ## 1. Cloudflare Tunnel — tambah route `blog.tionusa.id`
 
 Setup nyata (dari dashboard): tunnel **Cloud-Drive-Telegram**, tab **Published application
-routes**. `tionusa.id` diarahkan ke **nama container Docker** `http://tncpwebid-web-1:3000`.
+routes**. `tionusa.id` diarahkan ke **nama container Docker** `http://tionusa-web-1:3000`.
 Blog = **container yang sama** (dibedakan Host oleh middleware app), jadi tinggal tambah 1
 route dengan **service yang sama persis**.
 
@@ -27,8 +27,8 @@ route dengan **service yang sama persis**.
    - **Public hostname / Hostname**: `blog.tionusa.id`
      (kalau form pisah: **Subdomain** `blog`, **Domain** `tionusa.id`)
    - **Path**: `*`
-   - **Service / URL**: `http://tncpwebid-web-1:3000`  ← **sama persis** dgn baris `tionusa.id` (copy).
-3. **Save**. Muncul baris baru `blog.tionusa.id | * | http://tncpwebid-web-1:3000`.
+   - **Service / URL**: `http://tionusa-web-1:3000`  ← **sama persis** dgn baris `tionusa.id` (copy).
+3. **Save**. Muncul baris baru `blog.tionusa.id | * | http://tionusa-web-1:3000`.
 
 ### DNS (kalau `blog.tionusa.id` belum resolve setelah save)
 Cloudflare → domain **tionusa.id** → **DNS → Records**:

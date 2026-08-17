@@ -5,7 +5,7 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
 // Set theme before paint to avoid a flash of the wrong palette (defaults to the light gallery theme).
-const themeScript = `(function(){try{var t=localStorage.getItem('tncp-theme');if(t!=='light'&&t!=='dark'){t='light';}document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();`;
+const themeScript = `(function(){try{var t=localStorage.getItem('tionusa-theme')||localStorage.getItem('tncp-theme');if(t!=='light'&&t!=='dark'){t='light';}document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();`;
 
 const display = Playfair_Display({
   subsets: ["latin"],

@@ -11,7 +11,7 @@ The image ships the built `.next` plus production `node_modules` (`next start`),
 ## Files
 
 - `apps/web/Dockerfile` — multi-stage (deps → build → prod-deps → runner on `node:20-bookworm-slim`).
-- `docker-compose.yml` — one service, `127.0.0.1:3100:3000`, volume `app-data:/data`, `mem_limit: 512m`, healthcheck on `/api/health`, label `com.tncp.project=tionusa.id`.
+- `docker-compose.yml` — one service, `127.0.0.1:3100:3000`, volume `app-data:/data`, `mem_limit: 512m`, healthcheck on `/api/health`, label `com.tionusa.project=tionusa.id`.
 - `.github/workflows/ci.yml` — PR + push: `pnpm typecheck` + `pnpm build`.
 - `.github/workflows/deploy.yml` — push to `main`: build & push image to GHCR, then deploy over SSH.
 
