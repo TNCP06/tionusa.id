@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import { BlogNav } from "./components/BlogNav";
 import { BlogFooter } from "./components/BlogFooter";
+import { VisitorBeacon } from "@/components/VisitorBeacon";
 import { BLOG_DESCRIPTION, BLOG_NAME, BLOG_TITLE, BLOG_URL } from "@/lib/seo";
 import "./blog.css";
 
@@ -56,6 +57,9 @@ export default function BlogLayout({
     >
       <body>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <Suspense fallback={null}>
+          <VisitorBeacon />
+        </Suspense>
         <Suspense fallback={null}>
           <BlogNav />
         </Suspense>

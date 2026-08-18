@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Playfair_Display, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import { SiteNav } from "./components/SiteNav";
+import { VisitorBeacon } from "@/components/VisitorBeacon";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
@@ -58,6 +60,9 @@ export default function FrontendLayout({
     >
       <body>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <Suspense fallback={null}>
+          <VisitorBeacon />
+        </Suspense>
         <SiteNav />
         {children}
       </body>
