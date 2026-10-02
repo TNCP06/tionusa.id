@@ -76,6 +76,24 @@ function resolveSource(path: string, referer?: string | null, ua?: string | null
   return null;
 }
 
+/**
+ * Normalizes an IP address into its routing subnet (/24 for IPv4, /64 for IPv6)
+ * to prevent duplicate visitor sessions from IP rotation or cluster pools.
+ */
+export function getIpSubnet(ip?: string | null): string {
+  if (!ip) return "";
+  const clean = ip.replace(/^::ffff:/i, "").trim();
+  if (clean.includes(":")) {
+    const parts = clean.split(":").filter(Boolean);
+    return parts.slice(0, 4).join(":") + "::/64";
+  }
+  const parts = clean.split(".");
+  if (parts.length === 4) {
+    return parts.slice(0, 3).join(".") + ".0/24";
+  }
+  return clean;
+}
+
 export type TrackedVisit = Visit & {
   key: string;
   isBot?: boolean;
@@ -196,9 +214,10 @@ export function trackVisitorVisit(
  * Backwards-compatible helper for single visitor notification ping.
  */
 export function notifyVisitor(payload: Payload, v: Visit): void {
+  const subnet = getIpSubnet(v.ip);
   trackVisitorVisit(payload, {
     ...v,
-    key: v.ip || v.userAgent || "unknown",
+    key: subnet || v.ip || v.userAgent || "unknown",
   });
 }
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPayload } from "payload";
 import config from "@payload-config";
-import { trackVisitorVisit } from "@/lib/notify";
+import { getIpSubnet, trackVisitorVisit } from "@/lib/notify";
 
 // Target of client-side VisitorBeacon component.
 // Tracks visitor and bot pageviews, reporting to Telegram with rolling edit aggregation.
@@ -97,7 +97,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "path required" }, { status: 400 });
   }
 
-  const key: string = ip || ua || "unknown";
+  const subnet = getIpSubnet(ip);
+  const key: string = isBot
+    ? botMatch
+      ? `bot:${botMatch[0].toLowerCase()}`
+      : `bot:${botName || "unknown"}:${subnet || "pool"}`
+    : subnet || ua || "unknown";
   const payload = await getPayload({ config });
 
   const visit = {
