@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPayload } from "payload";
 import config from "@payload-config";
+import { trackVisitorVisit } from "@/lib/notify";
 
 // Target of client-side VisitorBeacon component.
-// Scrapers/bots do not execute React/JS, so only real human browsers ping this endpoint.
-
-const seen = new Map<string, number>();
-const WINDOW_MS = 60 * 60 * 1000; // 1 notification per visitor per hour
+// Tracks visitor and bot pageviews, reporting to Telegram with rolling edit aggregation.
 
 const BOT_UA =
   /bot|googleother|gptbot|chatgpt|claudebot|anthropic|perplexity|cohere|bytespider|amazonbot|applebot|bingbot|yandexbot|duckduckbot|semrushbot|ahrefsbot|dotbot|petalbot|crawl|spider|slurp|preview|scan|fetch|monitor|probe|curl|wget|python|go-http|headless|lighthouse|selenium|puppeteer|playwright|postman|insomnia|facebookexternal|meta-external|censys|shodan|urlscan/i;
@@ -79,43 +77,56 @@ export async function POST(req: NextRequest) {
   }
 
   const ua = req.headers.get("user-agent") ?? "";
-  if (!ua || BOT_UA.test(ua)) {
-    return NextResponse.json({ ignored: "bot_ua" });
-  }
-
   const ip =
     req.headers.get("cf-connecting-ip") ||
     (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
 
-  if (ip && BOT_IP_PREFIXES.some((p) => ip.startsWith(p))) {
-    return NextResponse.json({ ignored: "bot_ip" });
-  }
+  const botMatch = ua ? ua.match(BOT_UA) : null;
+  const isDatacenterIp = !!ip && BOT_IP_PREFIXES.some((p) => ip.startsWith(p));
+  const isBot = !ua || !!botMatch || isDatacenterIp;
+  const botName = botMatch
+    ? botMatch[0]
+    : isDatacenterIp
+      ? "Datacenter IP"
+      : !ua
+        ? "Unknown UA"
+        : undefined;
 
   const body = await req.json().catch(() => null);
   if (!body?.path) {
     return NextResponse.json({ error: "path required" }, { status: 400 });
   }
 
-  const now = Date.now();
   const key: string = ip || ua || "unknown";
-  if (now - (seen.get(key) ?? 0) < WINDOW_MS) {
-    return NextResponse.json({ deduped: true });
-  }
-  seen.set(key, now);
-  if (seen.size > 5000) {
-    for (const [k, t] of seen) if (now - t > WINDOW_MS) seen.delete(k);
+  const payload = await getPayload({ config });
+
+  const visit = {
+    key,
+    path: String(body.path).slice(0, 500),
+    host: body.host === "blog" ? ("blog" as const) : ("site" as const),
+    country: req.headers.get("cf-ipcountry") || undefined,
+    ip: ip || undefined,
+    userAgent: ua ? ua.slice(0, 500) : undefined,
+    referer: body.referer ? String(body.referer).slice(0, 500) : undefined,
+    isBot,
+    botName,
+  };
+
+  const { isFirst, count } = trackVisitorVisit(payload, visit);
+
+  if (!isFirst) {
+    return NextResponse.json({ deduped: true, count });
   }
 
-  const payload = await getPayload({ config });
   const doc = await payload.create({
     collection: "visitor-logs",
     data: {
-      path: String(body.path).slice(0, 500),
-      host: body.host === "blog" ? "blog" : "site",
-      country: req.headers.get("cf-ipcountry") || undefined,
-      ip: ip || undefined,
-      userAgent: ua ? ua.slice(0, 500) : undefined,
-      referer: body.referer ? String(body.referer).slice(0, 500) : undefined,
+      path: visit.path,
+      host: visit.host,
+      country: visit.country,
+      ip: visit.ip,
+      userAgent: visit.userAgent,
+      referer: visit.referer,
     },
   });
   return NextResponse.json({ id: doc.id }, { status: 201 });

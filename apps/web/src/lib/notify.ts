@@ -76,22 +76,130 @@ function resolveSource(path: string, referer?: string | null, ua?: string | null
   return null;
 }
 
+export type TrackedVisit = Visit & {
+  key: string;
+  isBot?: boolean;
+  botName?: string;
+};
+
+type VisitorSession = {
+  messageIdPromise?: Promise<number | undefined>;
+  messageId?: number;
+  firstVisit: number;
+  lastVisit: number;
+  count: number;
+  baseText: string;
+  lastPath: string;
+  lastEditTime: number;
+  timer?: NodeJS.Timeout;
+};
+
+const visitorSessions = new Map<string, VisitorSession>();
+const WINDOW_MS = 60 * 60 * 1000; // 1 hour sliding window
+const MIN_EDIT_INTERVAL_MS = 3000; // Throttle: max 1 edit every 3s per visitor to respect Telegram rate limits
+
+function formatEditedText(session: VisitorSession): string {
+  return `${session.baseText}\n\n🔄 Kunjungan: ${session.count}x dalam waktu dekat (terakhir: ${session.lastPath})`;
+}
+
+async function performEdit(payload: Payload, session: VisitorSession): Promise<void> {
+  session.lastEditTime = Date.now();
+  const messageId = session.messageId ?? (await session.messageIdPromise);
+  if (!messageId) return;
+
+  const text = formatEditedText(session);
+  await editTelegram(payload, messageId, text);
+}
+
+function scheduleEdit(payload: Payload, session: VisitorSession): void {
+  if (session.timer) return;
+
+  const now = Date.now();
+  const elapsed = now - session.lastEditTime;
+
+  if (elapsed >= MIN_EDIT_INTERVAL_MS) {
+    void performEdit(payload, session);
+  } else {
+    session.timer = setTimeout(() => {
+      session.timer = undefined;
+      void performEdit(payload, session);
+    }, MIN_EDIT_INTERVAL_MS - elapsed);
+  }
+}
+
 /**
- * Telegram ping for a real page view (bots/owner already filtered by the
- * middleware, deduped per IP per hour by /api/visit). Fire-and-forget like
- * the contact notification: the visit row is already persisted.
+ * Tracks a visitor/bot pageview. On the 1st visit within WINDOW_MS, sends a new Telegram
+ * message. On subsequent visits, throttles and updates the initial message with the rolling count.
  */
-export function notifyVisitor(payload: Payload, v: Visit): void {
+export function trackVisitorVisit(
+  payload: Payload,
+  v: TrackedVisit
+): { isFirst: boolean; count: number } {
+  const now = Date.now();
+
+  // Periodic memory eviction
+  if (visitorSessions.size > 5000) {
+    for (const [key, s] of visitorSessions) {
+      if (now - s.lastVisit > WINDOW_MS) {
+        if (s.timer) clearTimeout(s.timer);
+        visitorSessions.delete(key);
+      }
+    }
+  }
+
+  let session = visitorSessions.get(v.key);
+  if (session && now - session.firstVisit < WINDOW_MS) {
+    session.count++;
+    session.lastVisit = now;
+    session.lastPath = v.path;
+    scheduleEdit(payload, session);
+    return { isFirst: false, count: session.count };
+  }
+
+  if (session?.timer) {
+    clearTimeout(session.timer);
+  }
+
   const site = v.host === "blog" ? "blog.tionusa.id" : "tionusa.id";
   const source = resolveSource(v.path, v.referer, v.userAgent);
-  const text =
-    `👀 Pengunjung — ${site}${v.country ? ` (${v.country})` : ""}\n` +
+  const title = v.isBot
+    ? `🤖 Bot${v.botName ? ` (${v.botName})` : ""} — ${site}${v.country ? ` (${v.country})` : ""}`
+    : `👀 Pengunjung — ${site}${v.country ? ` (${v.country})` : ""}`;
+
+  const baseText =
+    `${title}\n` +
     `Halaman: ${v.path}\n` +
     (source ? `Sumber: ${source}\n` : "") +
     (v.ip ? `IP: ${v.ip}\n` : "") +
     (v.referer ? `Dari: ${v.referer}\n` : "") +
     (v.userAgent ? `UA: ${v.userAgent.slice(0, 120)}` : "");
-  void postTelegram(payload, text);
+
+  session = {
+    firstVisit: now,
+    lastVisit: now,
+    count: 1,
+    baseText,
+    lastPath: v.path,
+    lastEditTime: now,
+  };
+
+  session.messageIdPromise = postTelegram(payload, baseText).then((id) => {
+    session!.messageId = id;
+    return id;
+  });
+
+  visitorSessions.set(v.key, session);
+  return { isFirst: true, count: 1 };
+}
+
+/**
+ * Backwards-compatible helper for single visitor notification ping.
+ */
+export function notifyVisitor(payload: Payload, v: Visit): void {
+  trackVisitorVisit(payload, {
+    ...v,
+    key: v.ip || v.userAgent || "unknown",
+  });
 }
 
 async function sendTelegram(payload: Payload, msg: NewMessage): Promise<void> {
@@ -103,10 +211,10 @@ async function sendTelegram(payload: Payload, msg: NewMessage): Promise<void> {
   await postTelegram(payload, text);
 }
 
-async function postTelegram(payload: Payload, text: string): Promise<void> {
+async function postTelegram(payload: Payload, text: string): Promise<number | undefined> {
   const token = process.env.TG_BOT_TOKEN;
   const chatId = process.env.CONTACT_TG_CHAT_ID;
-  if (!token || !chatId) return;
+  if (!token || !chatId) return undefined;
 
   try {
     const res = await fetch(`${TG_API}/bot${token}/sendMessage`, {
@@ -116,9 +224,43 @@ async function postTelegram(payload: Payload, text: string): Promise<void> {
     });
     if (!res.ok) {
       payload.logger.error(`Telegram notify failed: ${res.status} ${await res.text()}`);
+      return undefined;
     }
+    const data = (await res.json().catch(() => null)) as {
+      ok?: boolean;
+      result?: { message_id?: number };
+    } | null;
+    return data?.result?.message_id;
   } catch (err) {
     payload.logger.error(`Telegram notify error: ${err}`);
+    return undefined;
+  }
+}
+
+async function editTelegram(payload: Payload, messageId: number, text: string): Promise<void> {
+  const token = process.env.TG_BOT_TOKEN;
+  const chatId = process.env.CONTACT_TG_CHAT_ID;
+  if (!token || !chatId) return;
+
+  try {
+    const res = await fetch(`${TG_API}/bot${token}/editMessageText`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        disable_web_page_preview: true,
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      if (!err.includes("message is not modified")) {
+        payload.logger.error(`Telegram editMessageText failed: ${res.status} ${err}`);
+      }
+    }
+  } catch (err) {
+    payload.logger.error(`Telegram editMessageText error: ${err}`);
   }
 }
 
